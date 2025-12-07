@@ -1,0 +1,97 @@
+graph TB
+    subgraph USER["Human User Interface"]
+        VOICE["Voice Commands"]
+        TEXT["Text Interface"]
+        GUI["Control Panel"]
+    end
+
+    subgraph INTELLIGENCE["VLA Intelligence Layer"]
+        VLA["VLA Model<br/>(Vision + Language → Actions)"]
+        UNDERSTAND["Task Understanding"]
+        PLAN["High-Level Planning"]
+    end
+
+    subgraph PLANNING["Task & Motion Planning"]
+        TASK["Task Planner<br/>(Subtask decomposition)"]
+        MOTION["Motion Planner<br/>(Collision-free paths)"]
+        NAV["Navigation Stack"]
+    end
+
+    subgraph CONTROL["Whole-Body Control"]
+        WBC["Whole-Body Controller"]
+        BALANCE["Balance Control"]
+        MANIP["Manipulation Control"]
+        LOCO["Locomotion Control"]
+    end
+
+    subgraph SAFETY["Safety Monitoring"]
+        MONITOR["State Monitor"]
+        ESTOP["Emergency Stop"]
+        LIMITS["Constraint Checker"]
+    end
+
+    subgraph ROS["ROS 2 Middleware"]
+        TOPICS["Topics & Services"]
+        TF["TF2 Transforms"]
+        CTRL_MGR["Controller Manager"]
+    end
+
+    subgraph PERCEPTION["Perception System"]
+        CAM["RGB-D Cameras"]
+        LIDAR["LiDAR"]
+        IMU["IMU"]
+        FUSION["Sensor Fusion"]
+    end
+
+    subgraph HARDWARE["Hardware/Simulation"]
+        ISAAC["Isaac Sim"]
+        ACTUATORS["32+ Joint Actuators"]
+        SENSORS["Feedback Sensors"]
+    end
+
+    USER --> VLA
+    VLA --> UNDERSTAND
+    UNDERSTAND --> PLAN
+
+    PLAN --> TASK
+    TASK --> MOTION
+    MOTION --> NAV
+
+    NAV --> WBC
+    TASK --> WBC
+
+    WBC --> BALANCE
+    WBC --> MANIP
+    WBC --> LOCO
+
+    BALANCE --> CTRL_MGR
+    MANIP --> CTRL_MGR
+    LOCO --> CTRL_MGR
+
+    WBC --> MONITOR
+    MONITOR --> LIMITS
+    LIMITS --> ESTOP
+
+    CTRL_MGR --> TOPICS
+    TOPICS --> ISAAC
+    TOPICS --> ACTUATORS
+
+    CAM --> FUSION
+    LIDAR --> FUSION
+    IMU --> FUSION
+    FUSION --> VLA
+
+    ISAAC --> SENSORS
+    ACTUATORS --> SENSORS
+    SENSORS --> PERCEPTION
+
+    ESTOP -.Emergency.-> ACTUATORS
+
+    style USER fill:#e1f5ff
+    style INTELLIGENCE fill:#fff4e1
+    style PLANNING fill:#f0e1ff
+    style CONTROL fill:#e1ffe1
+    style SAFETY fill:#ffe1e1
+    style ROS fill:#ffe1f0
+    style PERCEPTION fill:#f0ffe1
+    style HARDWARE fill:#e6f3ff

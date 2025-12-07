@@ -1,0 +1,47 @@
+sequenceDiagram
+    participant CLI as ros2 control CLI
+    participant CM as Controller Manager
+    participant JTC as Joint Trajectory Controller
+    participant HW as Hardware Interface
+
+    Note over CLI,HW: Controller Lifecycle Management
+
+    CLI->>CM: load_controller("joint_trajectory_controller")
+    CM->>CM: Create controller instance
+    CM->>JTC: on_init()
+    JTC->>CM: SUCCESS
+
+    CLI->>CM: configure_controller("joint_trajectory_controller")
+    CM->>JTC: on_configure()
+    JTC->>CM: Claim command/state interfaces
+    CM->>HW: Reserve interfaces
+    HW->>CM: Interfaces claimed
+    CM->>JTC: Configured
+    JTC->>CM: SUCCESS
+
+    CLI->>CM: activate_controller("joint_trajectory_controller")
+    CM->>JTC: on_activate()
+    JTC->>HW: Start reading states
+    JTC->>JTC: Enable command writing
+    JTC->>CM: SUCCESS
+
+    Note over CM,JTC: Control Loop (100-1000 Hz)
+
+    loop Every Control Cycle
+        CM->>HW: read() - Get sensor data
+        HW->>CM: Joint positions, velocities
+        CM->>JTC: update(time, period)
+        JTC->>JTC: Compute control law
+        JTC->>CM: Write commands
+        CM->>HW: write() - Send motor commands
+    end
+
+    CLI->>CM: deactivate_controller("joint_trajectory_controller")
+    CM->>JTC: on_deactivate()
+    JTC->>HW: Stop commanding
+    JTC->>CM: SUCCESS
+
+    CLI->>CM: unload_controller("joint_trajectory_controller")
+    CM->>JTC: on_cleanup()
+    JTC->>CM: Release interfaces
+    CM->>CM: Destroy controller

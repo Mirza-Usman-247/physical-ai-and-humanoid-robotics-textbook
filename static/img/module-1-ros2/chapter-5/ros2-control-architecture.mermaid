@@ -1,0 +1,53 @@
+graph TD
+    subgraph "Application Layer"
+        Planner[Motion Planner]
+        UI[User Interface]
+    end
+
+    subgraph "ROS 2 Control Framework"
+        CM[Controller Manager]
+        JTC[Joint Trajectory<br/>Controller]
+        JSC[Joint State<br/>Controller]
+        DiffDrive[Differential Drive<br/>Controller]
+    end
+
+    subgraph "Hardware Abstraction"
+        HWInt[Hardware Interface]
+        StateInt[State Interface<br/>Read: position, velocity, effort]
+        CmdInt[Command Interface<br/>Write: position, velocity, effort]
+    end
+
+    subgraph "Hardware Layer"
+        Motors[Motor Drivers]
+        Encoders[Encoders/Sensors]
+        Robot[Physical Robot]
+    end
+
+    Planner -->|/joint_trajectory| JTC
+    UI -->|/cmd_vel| DiffDrive
+
+    CM -->|Manages| JTC
+    CM -->|Manages| JSC
+    CM -->|Manages| DiffDrive
+
+    JTC -->|Commands| CmdInt
+    JSC -->|Reads| StateInt
+    DiffDrive -->|Commands| CmdInt
+
+    HWInt -->|Aggregates| StateInt
+    HWInt -->|Aggregates| CmdInt
+
+    CmdInt -->|write| Motors
+    StateInt <-->|read| Encoders
+    Motors -->|Control| Robot
+    Encoders <-->|Sense| Robot
+
+    classDef appStyle fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    classDef ctrlStyle fill:#7ED321,stroke:#5A9B18,stroke-width:2px,color:#fff
+    classDef hwStyle fill:#BD10E0,stroke:#8B0AA8,stroke-width:2px,color:#fff
+    classDef physStyle fill:#F5A623,stroke:#C27D1A,stroke-width:2px,color:#fff
+
+    class Planner,UI appStyle
+    class CM,JTC,JSC,DiffDrive ctrlStyle
+    class HWInt,StateInt,CmdInt hwStyle
+    class Motors,Encoders,Robot physStyle

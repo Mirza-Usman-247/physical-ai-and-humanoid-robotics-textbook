@@ -1,0 +1,50 @@
+graph LR
+    subgraph "Publisher Node"
+        P1[create_publisher<br/>topic: /chatter<br/>msg: String<br/>QoS: Reliable]
+        P2[Timer Callback<br/>2 Hz]
+        P3[publish msg]
+    end
+
+    subgraph "Topic: /chatter"
+        T1[/chatter<br/>Type: std_msgs/String<br/>QoS: Reliable]
+    end
+
+    subgraph "Subscriber Node 1"
+        S1[create_subscription<br/>topic: /chatter<br/>QoS: Reliable]
+        S2[Callback Function<br/>process msg]
+    end
+
+    subgraph "Subscriber Node 2"
+        S3[create_subscription<br/>topic: /chatter<br/>QoS: Reliable]
+        S4[Callback Function<br/>log msg]
+    end
+
+    P2 -->|triggers| P3
+    P3 -->|publish| T1
+    T1 -->|delivers| S1
+    T1 -->|delivers| S3
+    S1 -->|triggers| S2
+    S3 -->|triggers| S4
+
+    subgraph "Data Flow"
+        DF1["1. Timer fires at 2 Hz"]
+        DF2["2. Publisher creates String message"]
+        DF3["3. DDS serializes & transmits"]
+        DF4["4. All subscribers receive copy"]
+        DF5["5. Callbacks execute asynchronously"]
+    end
+
+    DF1 -.-> DF2
+    DF2 -.-> DF3
+    DF3 -.-> DF4
+    DF4 -.-> DF5
+
+    classDef pubStyle fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    classDef topicStyle fill:#7ED321,stroke:#5A9B18,stroke-width:2px,color:#fff
+    classDef subStyle fill:#F5A623,stroke:#C27D1A,stroke-width:2px,color:#fff
+    classDef flowStyle fill:#9013FE,stroke:#6B0FC2,stroke-width:1px,color:#fff
+
+    class P1,P2,P3 pubStyle
+    class T1 topicStyle
+    class S1,S2,S3,S4 subStyle
+    class DF1,DF2,DF3,DF4,DF5 flowStyle

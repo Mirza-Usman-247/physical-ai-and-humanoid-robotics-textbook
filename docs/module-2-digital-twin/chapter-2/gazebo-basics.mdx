@@ -1,0 +1,173 @@
+---
+title: "Gazebo Basics - Robot Simulation"
+description: "Creating robot models in Gazebo using URDF, SDF, world files, and plugins"
+sidebar_position: 2
+keywords: [gazebo, urdf, sdf, world-files, plugins, robot-simulation]
+---
+
+# Gazebo Basics - Robot Simulation
+
+## Learning Objectives
+
+1. **Create** custom robot models using URDF and convert to SDF format
+2. **Configure** Gazebo world files with environments, lighting, and physics settings
+3. **Implement** Gazebo plugins for sensors (cameras, LiDAR, IMU) and actuators
+4. **Integrate** Gazebo with ROS 2 for robot control and sensor data streaming
+5. **Debug** common Gazebo issues (collision meshes, inertia tensors, plugin configurations)
+
+## Prerequisites
+
+- Chapter 1: Simulation Principles (physics engine fundamentals)
+- Basic understanding of XML syntax
+- Familiarity with ROS 2 topics and transforms (Module 1)
+
+## Weekly Time Map
+
+- **Week 6, Days 3-5**: This chapter (Gazebo Basics)
+
+## Motivating Scenario
+
+**The Model Loading Problem**: A student creates a URDF for a humanoid robot, but when loaded in Gazebo, the robot falls through the ground, joints vibrate uncontrollably, and the camera sensor publishes no data.
+
+**Root Causes**:
+- Missing collision geometry (robot has visual mesh but no collision)
+- Incorrect inertia tensors (unrealistic mass distribution)
+- Sensor plugin not configured with proper ROS 2 topic remapping
+
+**This chapter teaches you**: How to create properly configured robot models with validated physics properties and functional sensor plugins.
+
+## 1. Core Theory: URDF and SDF
+
+### 1.1 URDF Structure
+
+**URDF (Unified Robot Description Format)** describes robot kinematics and dynamics:
+
+```xml
+<robot name="simple_robot">
+  <!-- Links: rigid bodies with inertia, collision, visual -->
+  <link name="base_link">
+    <inertial>
+      <mass value="10.0"/>
+      <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1"/>
+    </inertial>
+    <collision>
+      <geometry><box size="0.5 0.5 0.2"/></geometry>
+    </collision>
+    <visual>
+      <geometry><mesh filename="base.dae"/></geometry>
+    </visual>
+  </link>
+
+  <!-- Joints: connect links with motion constraints -->
+  <joint name="wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="wheel_link"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+</robot>
+```
+
+**Key Elements**:
+- **Links**: Mass, inertia tensor, collision geometry, visual mesh
+- **Joints**: Type (revolute, prismatic, fixed, continuous), axis, limits
+- **Sensors**: Cameras, LiDAR, IMU (via Gazebo plugins in SDF)
+
+### 1.2 SDF Format
+
+**SDF (Simulation Description Format)** extends URDF for Gazebo-specific features:
+
+```xml
+<sdf version="1.9">
+  <world name="my_world">
+    <physics name="default" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <model name="robot">
+      <plugin name="diff_drive" filename="libgazebo_ros_diff_drive.so">
+        <ros><namespace>/robot</namespace></ros>
+        <left_joint>left_wheel_joint</left_joint>
+        <right_joint>right_wheel_joint</right_joint>
+      </plugin>
+    </model>
+  </world>
+</sdf>
+```
+
+**SDF Advantages**:
+- World-level configuration (physics, gravity, lights)
+- Plugin system for sensors and actuators
+- Multiple models and nested structures
+- More expressive than URDF
+
+## 2. Worked Example: Creating a Mobile Robot in Gazebo
+
+See `examples/module-2-digital-twin/chapter-2/simple_robot.urdf.xacro` for complete URDF with:
+- Differential drive base
+- Camera sensor plugin
+- LiDAR sensor plugin
+- Proper inertia calculations
+
+**Steps**:
+1. Define base link with collision and visual geometry
+2. Add wheel joints (continuous type for rotation)
+3. Configure Gazebo plugins for sensors
+4. Launch in Gazebo and verify topics
+
+## 3. Hands-on Code
+
+**File**: `examples/module-2-digital-twin/chapter-2/simple_robot.urdf.xacro`
+
+```bash
+# Launch Gazebo with custom world
+ros2 launch gazebo_ros gazebo.launch.py world:=simple_world.sdf
+
+# Spawn robot model
+ros2 run gazebo_ros spawn_entity.py -file simple_robot.urdf -entity my_robot
+
+# Verify sensor topics
+ros2 topic list | grep camera
+ros2 topic echo /camera/image_raw
+```
+
+## 4. Application: Sensor Simulation
+
+**Camera Plugin Configuration**:
+- Update rate (30 Hz typical)
+- Resolution (640x480, 1920x1080)
+- Field of view, distortion model
+- ROS 2 topic remapping
+
+**LiDAR Plugin Configuration**:
+- Scan range, angle resolution
+- Ray count, noise model
+- Update frequency
+
+## 5. Common Pitfalls
+
+### Pitfall 1: Missing Collision Geometry
+**Symptom**: Robot falls through ground or passes through obstacles.
+**Fix**: Add `<collision>` tags matching visual geometry (can use simplified meshes for performance).
+
+### Pitfall 2: Incorrect Inertia Tensors
+**Symptom**: Robot vibrates, joints unstable.
+**Fix**: Use proper inertia calculation tools or URDF validation scripts.
+
+### Pitfall 3: Plugin Not Loading
+**Symptom**: No sensor data published.
+**Fix**: Check `GAZEBO_PLUGIN_PATH`, verify `.so` file exists, check topic remapping.
+
+## 6. Self-Study Exercises
+
+1. Create a 4-wheeled robot URDF with Ackermann steering
+2. Add an RGB-D camera plugin and visualize point cloud in RViz
+3. Configure world file with custom lighting and textures
+4. Debug: Fix provided broken URDF (missing inertia)
+
+## 7. Chapter References
+
+- [Gazebo Tutorials](https://classic.gazebosim.org/tutorials)
+- [URDF XML Specification](http://wiki.ros.org/urdf/XML)
+- [SDF Format Specification](http://sdformat.org/)
+- [Gazebo ROS 2 Plugins](https://github.com/ros-simulation/gazebo_ros_pkgs)

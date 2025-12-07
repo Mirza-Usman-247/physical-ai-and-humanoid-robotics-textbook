@@ -1,0 +1,46 @@
+graph LR
+    subgraph CPU["CPU (Single Core)"]
+        ENV1["Env 1"]
+        ENV2["Env 2"]
+        ENV3["Env 3"]
+        ENV4["Env 4"]
+    end
+
+    subgraph GPU["GPU (Massively Parallel)"]
+        direction TB
+        subgraph Row1["Row 1 (256 envs)"]
+            G1["0-255"]
+        end
+        subgraph Row2["Row 2 (256 envs)"]
+            G2["256-511"]
+        end
+        subgraph Row3["..."]
+            G3["..."]
+        end
+        subgraph Row16["Row 16 (256 envs)"]
+            G4["3840-4095"]
+        end
+    end
+
+    subgraph Speedup["Performance"]
+        CPUSPEED["4 envs × 1000 Hz<br/>= 4K steps/sec"]
+        GPUSPEED["4096 envs × 1000 Hz<br/>= 4M steps/sec"]
+        BOOST["🚀 1000× Speedup"]
+    end
+
+    ENV1 -.Sequential.-> ENV2
+    ENV2 -.Sequential.-> ENV3
+    ENV3 -.Sequential.-> ENV4
+
+    Row1 ~~~ Row2
+    Row2 ~~~ Row3
+    Row3 ~~~ Row16
+
+    CPU --> CPUSPEED
+    GPU --> GPUSPEED
+    GPUSPEED --> BOOST
+
+    style CPU fill:#ffe1e1
+    style GPU fill:#e1ffe1
+    style Speedup fill:#fff4e1
+    style BOOST fill:#ffd700,color:#000

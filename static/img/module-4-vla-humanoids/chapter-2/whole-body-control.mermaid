@@ -1,0 +1,51 @@
+graph TB
+    subgraph VLA["VLA Model Output"]
+        TARGET["Target Positions<br/>(Arms, Legs, Torso)"]
+        TASK["Task Priorities<br/>(Manipulation, Locomotion)"]
+    end
+
+    subgraph WB["Whole-Body Controller"]
+        BALANCE["Balance Task<br/>(ZMP, Capture Point)"]
+        MANIP["Manipulation Task<br/>(Arm positioning)"]
+        LOCO["Locomotion Task<br/>(Walking gait)"]
+        POSTURE["Posture Task<br/>(Comfortable configuration)"]
+        PRIORITY["Priority Optimization"]
+    end
+
+    subgraph EXECUTION["Execution Layer"]
+        IK["Inverse Kinematics"]
+        TRAJ["Trajectory Generation"]
+        CTRL["Low-Level Control"]
+    end
+
+    subgraph HARDWARE["Humanoid Hardware"]
+        JOINTS["Joint Actuators<br/>(32+ motors)"]
+        SENSORS["IMU, Force/Torque<br/>(Balance feedback)"]
+        ROBOT["Physical Robot"]
+    end
+
+    TARGET --> PRIORITY
+    TASK --> PRIORITY
+
+    PRIORITY --> BALANCE
+    PRIORITY --> MANIP
+    PRIORITY --> LOCO
+    PRIORITY --> POSTURE
+
+    BALANCE --> IK
+    MANIP --> IK
+    LOCO --> IK
+    POSTURE --> IK
+
+    IK --> TRAJ
+    TRAJ --> CTRL
+
+    CTRL --> JOINTS
+    SENSORS --> BALANCE
+
+    JOINTS --> ROBOT
+
+    style VLA fill:#e1f5ff
+    style WB fill:#fff4e1
+    style EXECUTION fill:#f0e1ff
+    style HARDWARE fill:#e1ffe1

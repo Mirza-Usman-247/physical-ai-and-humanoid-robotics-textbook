@@ -1,0 +1,144 @@
+---
+title: "Physics Accuracy & Validation"
+description: "Minimizing sim-to-real gap through parameter tuning, validation, and system identification"
+sidebar_position: 4
+keywords: [sim-to-real, validation, system-identification, parameter-tuning, domain-randomization]
+---
+
+# Physics Accuracy & Validation
+
+## Learning Objectives
+
+1. **Identify** sources of sim-to-real gap (contact models, actuator dynamics, sensor noise)
+2. **Implement** system identification workflows to tune simulation parameters
+3. **Validate** simulation accuracy using real-world data collection
+4. **Apply** domain randomization to improve policy robustness
+5. **Measure** transfer success using quantitative metrics
+
+## Prerequisites
+
+- Chapters 1-3: Simulation fundamentals, Gazebo, Unity
+- Understanding of control systems and sensor fusion
+- Access to real robot hardware (or recorded datasets)
+
+## Weekly Time Map
+
+- **Week 7, Days 3-5**: This chapter (Physics Accuracy & Validation)
+
+## Motivating Scenario
+
+**The Transfer Failure**: A grasping policy achieves 95% success in MuJoCo simulation but only 30% on a real robot arm.
+
+**Root Causes Identified**:
+1. **Friction Model**: Sim used constant μ=0.5; real varies 0.3-0.8 with surface/force
+2. **Actuator Delay**: Sim assumed instant torque; real has 15ms lag + bandwidth limits
+3. **Sensor Noise**: Sim had perfect force readings; real has ±0.5N noise
+
+**Solution**: System identification measured real friction, delay, noise → tuned sim → 85% real success.
+
+## Core Theory
+
+### Sim-to-Real Gap Sources
+
+**Physics Errors**:
+- Contact friction (static vs dynamic, surface-dependent)
+- Damping (joint friction, air resistance)
+- Deformation (rigid body assumption vs compliant materials)
+
+**Actuator Errors**:
+- Torque/velocity limits
+- Bandwidth (motor response time)
+- Backlash, gear ratios
+
+**Sensor Errors**:
+- Noise (Gaussian, outliers)
+- Bias, drift
+- Sampling rate, latency
+
+### System Identification Process
+
+```
+1. Collect Real Data: Run robot, log joint angles, forces, sensor readings
+2. Run Sim with Same Inputs: Apply same control commands in simulation
+3. Compute Error: RMS difference between sim and real trajectories
+4. Optimize Parameters: Gradient descent to minimize error
+5. Validate: Test on held-out scenarios
+```
+
+### Domain Randomization
+
+Randomize parameters during training to prevent overfitting:
+
+| Parameter | Nominal | Randomization Range |
+|-----------|---------|---------------------|
+| Mass | 5.0 kg | [4.0, 6.0] kg |
+| Friction | 0.5 | [0.3, 0.8] |
+| Actuator Delay | 10 ms | [5, 20] ms |
+| Camera FOV | 60° | [55°, 65°] |
+
+## Worked Example
+
+**File**: `examples/module-2-digital-twin/chapter-4/tune_friction.py`
+
+```python
+import numpy as np
+from scipy.optimize import minimize
+
+def simulate(friction_coeff):
+    # Run sim with given friction
+    # Return trajectory
+    pass
+
+def real_trajectory():
+    # Load real robot data
+    pass
+
+def error_function(params):
+    sim_traj = simulate(params[0])  # friction
+    real_traj = real_trajectory()
+    return np.linalg.norm(sim_traj - real_traj)
+
+# Optimize friction to match real data
+result = minimize(error_function, x0=[0.5], bounds=[(0.1, 1.0)])
+optimal_friction = result.x[0]
+```
+
+## Validation Metrics
+
+**Trajectory Error**:
+- RMS position error (meters)
+- Max deviation
+- Time-to-target difference
+
+**Force/Torque Error**:
+- Contact force magnitude
+- Direction accuracy
+- Impulse integral
+
+**Success Rate**:
+- Task completion %
+- Robustness to perturbations
+
+## Common Pitfalls
+
+### Pitfall 1: Overfitting to Single Scenario
+**Solution**: Validate on diverse test cases, use cross-validation
+
+### Pitfall 2: Ignoring Unmodeled Dynamics
+**Solution**: Add residual error models (learned corrections)
+
+### Pitfall 3: No Quantitative Validation
+**Solution**: Always measure metrics, don't rely on "looks good"
+
+## Self-Study Exercises
+
+1. Collect pendulum data from real hardware, tune damping coefficient
+2. Implement domain randomization in Gazebo for friction/mass
+3. Compare sim-to-real gap before/after tuning
+4. Design validation protocol for bipedal walking
+
+## References
+
+- Peng et al., "Sim-to-Real Transfer of Robotic Control with Dynamics Randomization", ICRA 2018
+- Tobin et al., "Domain Randomization for Transferring Deep Neural Networks from Simulation to the Real World", IROS 2017
+- [System Identification Toolbox](https://www.mathworks.com/products/sysid.html)

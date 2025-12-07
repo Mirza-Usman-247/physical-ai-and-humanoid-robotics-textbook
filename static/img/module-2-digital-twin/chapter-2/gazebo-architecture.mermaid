@@ -1,0 +1,47 @@
+graph TD
+    subgraph "Application Layer"
+        ROS2[ROS 2 Nodes<br/>Controllers, Navigation]
+    end
+
+    subgraph "Gazebo Server"
+        World[World Manager]
+        Physics[Physics Engine<br/>ODE]
+        Sensors[Sensor Manager<br/>Camera, LiDAR, IMU]
+        Plugins[Plugin System]
+    end
+
+    subgraph "Gazebo Client (GUI)"
+        Render[3D Renderer<br/>OGRE]
+        GUI[User Interface]
+    end
+
+    subgraph "Model Description"
+        URDF[URDF Files]
+        SDF[SDF Files]
+        Meshes[3D Meshes<br/>DAE, STL]
+    end
+
+    ROS2 <-->|Topics/Services| Plugins
+    Plugins -->|Control| World
+    World -->|State| Physics
+    World -->|Update| Sensors
+    Physics -->|Forces| World
+    Sensors -->|Data| Plugins
+    Plugins -->|Publish| ROS2
+
+    URDF -->|Convert| SDF
+    SDF -->|Load| World
+    Meshes -->|Reference| SDF
+
+    World -->|Scene| Render
+    Render -->|Display| GUI
+
+    classDef appStyle fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    classDef serverStyle fill:#7ED321,stroke:#5A9B18,stroke-width:2px,color:#fff
+    classDef clientStyle fill:#F5A623,stroke:#C27D1A,stroke-width:2px,color:#000
+    classDef modelStyle fill:#BD10E0,stroke:#8B0AA8,stroke-width:2px,color:#fff
+
+    class ROS2 appStyle
+    class World,Physics,Sensors,Plugins serverStyle
+    class Render,GUI clientStyle
+    class URDF,SDF,Meshes modelStyle

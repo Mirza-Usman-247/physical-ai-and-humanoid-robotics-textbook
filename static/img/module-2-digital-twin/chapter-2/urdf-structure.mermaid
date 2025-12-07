@@ -1,0 +1,49 @@
+graph TB
+    Robot[robot name='simple_robot']
+
+    subgraph "Links (Rigid Bodies)"
+        Base[link: base_link<br/>mass=10kg<br/>inertia matrix]
+        Wheel1[link: left_wheel<br/>mass=1kg]
+        Wheel2[link: right_wheel<br/>mass=1kg]
+        Camera[link: camera_link<br/>mass=0.1kg]
+    end
+
+    subgraph "Joints (Connections)"
+        J1[joint: left_wheel_joint<br/>type=continuous<br/>axis=[0,1,0]]
+        J2[joint: right_wheel_joint<br/>type=continuous<br/>axis=[0,1,0]]
+        J3[joint: camera_joint<br/>type=fixed]
+    end
+
+    subgraph "Link Components"
+        Inertial[inertial<br/>mass + inertia tensor]
+        Collision[collision<br/>geometry for physics]
+        Visual[visual<br/>geometry for rendering]
+    end
+
+    Robot --> Base
+    Robot --> Wheel1
+    Robot --> Wheel2
+    Robot --> Camera
+
+    Base -->|parent| J1
+    J1 -->|child| Wheel1
+
+    Base -->|parent| J2
+    J2 -->|child| Wheel2
+
+    Base -->|parent| J3
+    J3 -->|child| Camera
+
+    Base -.contains.-> Inertial
+    Base -.contains.-> Collision
+    Base -.contains.-> Visual
+
+    classDef robotStyle fill:#4A90E2,stroke:#2E5C8A,stroke-width:3px,color:#fff
+    classDef linkStyle fill:#7ED321,stroke:#5A9B18,stroke-width:2px,color:#000
+    classDef jointStyle fill:#F5A623,stroke:#C27D1A,stroke-width:2px,color:#000
+    classDef compStyle fill:#BD10E0,stroke:#8B0AA8,stroke-width:2px,color:#fff
+
+    class Robot robotStyle
+    class Base,Wheel1,Wheel2,Camera linkStyle
+    class J1,J2,J3 jointStyle
+    class Inertial,Collision,Visual compStyle

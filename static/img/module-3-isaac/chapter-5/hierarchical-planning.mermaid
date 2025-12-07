@@ -1,0 +1,51 @@
+graph TB
+    subgraph Task["Task Planner (LLM)"]
+        INST["Instruction:<br/>'Clean the table'"]
+        DECOMP["Task Decomposition"]
+        SUB1["1. Pick object A"]
+        SUB2["2. Place in bin"]
+        SUB3["3. Pick object B"]
+        SUB4["4. Wipe surface"]
+    end
+
+    subgraph Motion["Motion Planner"]
+        GRASP["Grasp Planning<br/>(Gripper pose)"]
+        TRAJ["Trajectory Generation<br/>(Collision-free path)"]
+        IK["Inverse Kinematics<br/>(Joint angles)"]
+    end
+
+    subgraph Control["Low-Level Controller"]
+        RL["RL Policy<br/>(Learned controller)"]
+        PID["PID Controller<br/>(Joint tracking)"]
+        EXEC["Motor Commands"]
+    end
+
+    subgraph Feedback["Perception Feedback"]
+        CAM["Camera Observation"]
+        DETECT["Object Detection"]
+        UPDATE["Update World State"]
+    end
+
+    INST --> DECOMP
+    DECOMP --> SUB1
+    DECOMP --> SUB2
+    DECOMP --> SUB3
+    DECOMP --> SUB4
+
+    SUB1 --> GRASP
+    GRASP --> TRAJ
+    TRAJ --> IK
+
+    IK --> RL
+    RL --> PID
+    PID --> EXEC
+
+    EXEC --> CAM
+    CAM --> DETECT
+    DETECT --> UPDATE
+    UPDATE --> SUB2
+
+    style Task fill:#e1f5ff
+    style Motion fill:#fff4e1
+    style Control fill:#f0e1ff
+    style Feedback fill:#e1ffe1

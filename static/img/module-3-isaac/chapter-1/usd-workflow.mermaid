@@ -1,0 +1,47 @@
+flowchart LR
+    subgraph Creation["Scene Creation"]
+        CAD["CAD Model"]
+        URDF["URDF/SDF"]
+        MANUAL["Manual Authoring"]
+    end
+
+    subgraph USD["USD Stage"]
+        ROOT["Root Layer"]
+        REF["References"]
+        LAYERS["Layer Stack"]
+    end
+
+    subgraph Nucleus["Omniverse Nucleus"]
+        ASSETS["Asset Library"]
+        VERSION["Version Control"]
+        COLLAB["Multi-user Sync"]
+    end
+
+    subgraph Isaac["Isaac Sim"]
+        LOAD["Lazy Loading"]
+        SIM["Simulation"]
+        RENDER["Rendering"]
+    end
+
+    CAD --> USD
+    URDF --> USD
+    MANUAL --> USD
+
+    USD --> Nucleus
+    Nucleus --> Isaac
+
+    ROOT --> REF
+    REF --> LAYERS
+    LAYERS --> LOAD
+
+    ASSETS --> REF
+    VERSION --> LAYERS
+    COLLAB --> Nucleus
+
+    LOAD --> SIM
+    LOAD --> RENDER
+
+    style Creation fill:#e1f5ff
+    style USD fill:#fff4e1
+    style Nucleus fill:#e1ffe1
+    style Isaac fill:#f0e1ff

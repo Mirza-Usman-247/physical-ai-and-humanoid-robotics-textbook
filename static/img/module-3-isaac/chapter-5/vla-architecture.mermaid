@@ -1,0 +1,55 @@
+flowchart TB
+    subgraph Input["Multi-Modal Inputs"]
+        IMG["RGB Image<br/>(224×224×3)"]
+        LANG["Language Instruction<br/>'Pick up red cube'"]
+        STATE["Robot State<br/>(Joint angles, velocities)"]
+    end
+
+    subgraph Encoders["Feature Encoders"]
+        VENC["Vision Encoder<br/>(ViT/ResNet)"]
+        LENC["Language Encoder<br/>(BERT/GPT)"]
+        SENC["State Encoder<br/>(MLP)"]
+    end
+
+    subgraph Fusion["Multi-Modal Fusion"]
+        ATTN["Cross-Attention"]
+        COMBINE["Feature Concatenation"]
+        TRANS["Transformer Layers"]
+    end
+
+    subgraph Decoder["Action Decoder"]
+        HEAD["Action Head"]
+        DIST["Action Distribution"]
+    end
+
+    subgraph Output["Robot Actions"]
+        JOINT["Joint Positions<br/>(7-DOF arm)"]
+        GRIP["Gripper Command<br/>(Open/Close)"]
+        EXEC["Execute on Robot"]
+    end
+
+    IMG --> VENC
+    LANG --> LENC
+    STATE --> SENC
+
+    VENC --> ATTN
+    LENC --> ATTN
+    SENC --> COMBINE
+
+    ATTN --> TRANS
+    COMBINE --> TRANS
+
+    TRANS --> HEAD
+    HEAD --> DIST
+
+    DIST --> JOINT
+    DIST --> GRIP
+
+    JOINT --> EXEC
+    GRIP --> EXEC
+
+    style Input fill:#e1f5ff
+    style Encoders fill:#fff4e1
+    style Fusion fill:#f0e1ff
+    style Decoder fill:#ffe1f0
+    style Output fill:#e1ffe1

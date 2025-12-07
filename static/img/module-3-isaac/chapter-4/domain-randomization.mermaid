@@ -1,0 +1,50 @@
+flowchart LR
+    subgraph Training["Training in Simulation"]
+        direction TB
+        EPISODE["Training Episode"]
+
+        subgraph PhysicsRand["Physics Randomization"]
+            MASS["Mass: [0.5, 2.0] kg"]
+            FRICTION["Friction: [0.3, 1.5]"]
+            DAMP["Damping: [0.1, 0.5]"]
+        end
+
+        subgraph VisualRand["Visual Randomization"]
+            LIGHT["Lighting: [500, 2500] lux"]
+            TEXTURE["Textures: 20 variants"]
+            COLOR["Colors: Random RGB"]
+        end
+
+        subgraph SensorRand["Sensor Randomization"]
+            NOISE["Camera Noise: σ=0.05"]
+            BLUR["Motion Blur"]
+            LATENCY["Latency: [10, 50] ms"]
+        end
+    end
+
+    subgraph Policy["Robust Policy"]
+        LEARN["Policy learns invariant features"]
+        ROBUST["Robust to variations"]
+    end
+
+    subgraph Deploy["Real-World Deployment"]
+        REAL["Physical Robot"]
+        SUCCESS["Zero-Shot Transfer"]
+    end
+
+    EPISODE --> PhysicsRand
+    EPISODE --> VisualRand
+    EPISODE --> SensorRand
+
+    PhysicsRand --> LEARN
+    VisualRand --> LEARN
+    SensorRand --> LEARN
+
+    LEARN --> ROBUST
+    ROBUST --> REAL
+    REAL --> SUCCESS
+
+    style Training fill:#e1f5ff
+    style Policy fill:#f0e1ff
+    style Deploy fill:#e1ffe1
+    style SUCCESS fill:#ffd700,color:#000

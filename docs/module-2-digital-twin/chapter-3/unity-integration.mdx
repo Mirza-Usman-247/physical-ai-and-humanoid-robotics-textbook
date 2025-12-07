@@ -1,0 +1,110 @@
+---
+title: "Unity Integration with ROS 2"
+description: "High-fidelity simulation using Unity 2022.x LTS, PhysX physics, and ROS 2 bridges"
+sidebar_position: 3
+keywords: [unity, ros2-unity, physx, unity-robotics-hub, tcp-connector]
+---
+
+# Unity Integration with ROS 2
+
+## Learning Objectives
+
+1. **Configure** Unity 2022.x LTS with ROS 2 TCP/UDP connector packages
+2. **Implement** Unity-ROS message passing for sensor data and control commands
+3. **Create** high-fidelity sensor simulations (RGB-D cameras, ray-traced LiDAR)
+4. **Optimize** Unity physics settings (PhysX) for robotics applications
+5. **Deploy** Unity simulations for VR/AR and synthetic dataset generation
+
+## Prerequisites
+
+- Chapter 1-2: Simulation principles and Gazebo basics
+- Unity 2022.x LTS installed
+- Basic C# programming (Unity scripting)
+
+## Weekly Time Map
+
+- **Week 7, Days 1-2**: This chapter (Unity Integration)
+
+## Motivating Scenario
+
+**The Visual Realism Gap**: A robot vision system trained on Gazebo's simple textures fails completely when deployed to a real warehouse with complex lighting, reflections, and varied materials.
+
+**Solution**: Unity's ray-traced rendering (RTX) and physically-based materials provide photorealistic training data, enabling robust vision policies that transfer to real environments.
+
+## Core Theory
+
+### Unity-ROS Architecture
+
+```
+Unity Scene → ROS TCP Connector → ROS 2 Bridge Node → ROS 2 Network
+```
+
+**Components**:
+- **ROS TCP Connector** (Unity package): Serializes messages to JSON/binary
+- **ROS TCP Endpoint** (ROS 2 package): Converts to ROS 2 messages
+- **Unity Robotics Hub**: Visualization tools, URDF importer
+
+### PhysX vs ODE
+
+| Feature | PhysX (Unity) | ODE (Gazebo) |
+|---------|---------------|--------------|
+| **Solver** | TGS (Temporal Gauss-Seidel) | PGS (Projected Gauss-Seidel) |
+| **Performance** | GPU-accelerated | CPU only |
+| **Soft Bodies** | Yes (Unity Cloth) | Limited |
+| **Graphics Integration** | Tight (same engine) | Separate (OGRE) |
+
+## Hands-on Code
+
+**File**: `examples/module-2-digital-twin/chapter-3/RobotController.cs`
+
+```csharp
+using RosMessageTypes.Geometry;
+using Unity.Robotics.ROSTCPConnector;
+
+public class RobotController : MonoBehaviour
+{
+    ROSConnection ros;
+
+    void Start()
+    {
+        ros = ROSConnection.GetOrCreateInstance();
+        ros.RegisterPublisher<TwistMsg>("cmd_vel");
+        ros.Subscribe<TwistMsg>("cmd_vel", MoveRobot);
+    }
+
+    void MoveRobot(TwistMsg msg)
+    {
+        // Apply velocity to robot
+    }
+}
+```
+
+See examples for complete camera sensor integration.
+
+## Application
+
+**Use Cases**:
+- **Synthetic Data Generation**: Train vision models with infinite labeled data
+- **Human-in-the-Loop**: VR teleoperation interfaces
+- **Failure Scenario Testing**: Simulate rare events (lighting failures, smoke)
+
+## Common Pitfalls
+
+### Pitfall 1: TCP Latency
+**Solution**: Use binary serialization, reduce message frequency, enable compression
+
+### Pitfall 2: Physics Instability
+**Solution**: Tune PhysX solver iterations, use continuous collision detection
+
+## Self-Study Exercises
+
+1. Import robot URDF into Unity using Unity Robotics Hub
+2. Create RGB-D camera sensor publishing to ROS 2
+3. Build VR teleop interface with Quest headset
+4. Generate synthetic dataset with domain randomization
+
+## References
+
+- [Unity Robotics Hub](https://github.com/Unity-Technologies/Unity-Robotics-Hub)
+- [ROS TCP Connector](https://github.com/Unity-Technologies/ROS-TCP-Connector)
+- [Unity Physics Documentation](https://docs.unity3d.com/Manual/PhysicsSection.html)

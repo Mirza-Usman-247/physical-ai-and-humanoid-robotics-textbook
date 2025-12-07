@@ -1,0 +1,87 @@
+graph TB
+    subgraph "Application Layer"
+        N1[Node: Camera Driver]
+        N2[Node: Image Processor]
+        N3[Node: Object Detector]
+        N4[Node: Motion Planner]
+    end
+
+    subgraph "ROS 2 Graph Layer"
+        T1["/camera/image_raw<br/>(sensor_msgs/Image)"]
+        T2["/processed_image<br/>(sensor_msgs/Image)"]
+        T3["/detected_objects<br/>(vision_msgs/Detection2DArray)"]
+        T4["/cmd_vel<br/>(geometry_msgs/Twist)"]
+        S1["/set_camera_params<br/>(Service)"]
+        A1["/navigate_to_object<br/>(Action)"]
+    end
+
+    subgraph "DDS Middleware Layer"
+        DDS1[DDS Publisher]
+        DDS2[DDS Subscriber]
+        DDS3[DDS Service Server]
+        DDS4[DDS Service Client]
+        DDS5[DDS Action Server]
+        DDS6[DDS Action Client]
+    end
+
+    subgraph "Transport Layer"
+        UDP[UDP Multicast<br/>Discovery]
+        TCP[TCP/UDP<br/>Data Transfer]
+        SHM[Shared Memory<br/>Local Communication]
+    end
+
+    %% Node to Topic connections
+    N1 -->|Publishes| T1
+    T1 -->|Subscribes| N2
+    N2 -->|Publishes| T2
+    T2 -->|Subscribes| N3
+    N3 -->|Publishes| T3
+    T3 -->|Subscribes| N4
+    N4 -->|Publishes| T4
+
+    %% Service connections
+    N1 -.->|Provides| S1
+    N2 -.->|Calls| S1
+
+    %% Action connections
+    N4 -.->|Provides| A1
+    N3 -.->|Sends Goal| A1
+
+    %% DDS Layer connections
+    T1 --> DDS1
+    T1 --> DDS2
+    T2 --> DDS1
+    T2 --> DDS2
+    T3 --> DDS1
+    T3 --> DDS2
+    T4 --> DDS1
+    T4 --> DDS2
+
+    S1 --> DDS3
+    S1 --> DDS4
+    A1 --> DDS5
+    A1 --> DDS6
+
+    %% Transport connections
+    DDS1 --> UDP
+    DDS2 --> UDP
+    DDS1 --> TCP
+    DDS2 --> TCP
+    DDS1 --> SHM
+    DDS2 --> SHM
+    DDS3 --> TCP
+    DDS4 --> TCP
+    DDS5 --> TCP
+    DDS6 --> TCP
+
+    classDef nodeStyle fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    classDef topicStyle fill:#7ED321,stroke:#5A9B18,stroke-width:2px,color:#fff
+    classDef serviceStyle fill:#F5A623,stroke:#C27D1A,stroke-width:2px,color:#fff
+    classDef ddsStyle fill:#BD10E0,stroke:#8B0AA8,stroke-width:2px,color:#fff
+    classDef transportStyle fill:#50E3C2,stroke:#3AB09E,stroke-width:2px,color:#fff
+
+    class N1,N2,N3,N4 nodeStyle
+    class T1,T2,T3,T4 topicStyle
+    class S1,A1 serviceStyle
+    class DDS1,DDS2,DDS3,DDS4,DDS5,DDS6 ddsStyle
+    class UDP,TCP,SHM transportStyle

@@ -1,0 +1,50 @@
+flowchart LR
+    subgraph VLA["VLA System"]
+        INFER["VLA Inference<br/>(Vision + Language → Action)"]
+        CONF["Confidence Scoring"]
+    end
+
+    subgraph SAFETY["Safety Layer"]
+        CHECK["Safety Check<br/>(Joint limits, collisions)"]
+        OVERRIDE["Emergency Override"]
+    end
+
+    subgraph CTRL["Control System"]
+        WB["Whole-Body Control"]
+        TRAJ["Trajectory Planning"]
+        PID["PID Control"]
+    end
+
+    subgraph ROS2["ROS 2 Integration"]
+        TOPICS["Topics & Services"]
+        CONTROLLERS["Controller Manager"]
+        HW["Hardware Interface"]
+    end
+
+    subgraph ROBOT["Humanoid Robot"]
+        ACTUATORS["Joint Actuators"]
+        SENSORS["IMU, Cameras, Force"]
+    end
+
+    INFER --> CONF
+    CONF --> CHECK
+    CHECK --> WB
+    OVERRIDE --> WB
+
+    WB --> TRAJ
+    TRAJ --> PID
+
+    PID --> TOPICS
+    TOPICS --> CONTROLLERS
+    CONTROLLERS --> HW
+
+    HW --> ACTUATORS
+    SENSORS --> INFER
+
+    ACTUATORS --> ROBOT
+
+    style VLA fill:#e1f5ff
+    style SAFETY fill:#ffe1e1
+    style CTRL fill:#fff4e1
+    style ROS2 fill:#f0e1ff
+    style ROBOT fill:#e1ffe1

@@ -1,0 +1,379 @@
+---
+title: "Humanoid Robot Control with VLA Models"
+description: "Advanced control strategies, whole-body motion, and real-time execution"
+sidebar_position: 2
+keywords: [humanoid-control, whole-body-control, real-time, vla-integration, motion-planning]
+---
+
+# Humanoid Robot Control with VLA Models
+
+## Learning Objectives
+
+1. Implement whole-body control for humanoid robots using VLA outputs
+2. Design safety layers and constraint handling for humanoid motion
+3. Integrate VLA models with existing control frameworks (ROS 2 Control)
+4. Handle real-time performance requirements for humanoid control
+5. Address humanoid-specific challenges (balance, stability, joint limits)
+
+## Prerequisites
+
+- Understanding of VLA models from Chapter 1
+- Knowledge of humanoid kinematics and dynamics
+- Experience with ROS 2 control from Module 1
+- Basic understanding of whole-body control and balance
+
+## Weekly Mapping
+
+**Week 11, Day 6-7**: Whole-Body Control Integration
+**Week 12, Day 1-2**: Safety and Constraint Handling
+**Week 12, Day 3**: Real-Time Performance Optimization
+
+## Motivating Scenario
+
+A humanoid robot receives the command "Walk to the kitchen and pick up the blue bottle." This requires coordinated control of 30+ joints while maintaining balance, avoiding obstacles, and executing the manipulation task. Traditional approaches would require separate locomotion, manipulation, and planning systems. VLA models can potentially generate the entire motion sequence directly from visual input and language, but require careful integration with humanoid control systems.
+
+## Core Theory
+
+### Whole-Body Control Architecture
+
+Humanoid robots require coordination of multiple tasks simultaneously:
+- **Balance**: Maintain center of mass within support polygon
+- **Locomotion**: Generate walking/stepping patterns
+- **Manipulation**: Execute arm/hand movements
+- **Posture**: Maintain comfortable joint configurations
+
+The control problem can be formulated as a constrained optimization:
+
+```
+min ||Ax - b||²
+s.t. Cx ≤ d (inequality constraints)
+     Ex = f (equality constraints)
+```
+
+Where x represents joint velocities, and constraints enforce balance, joint limits, and task requirements.
+
+### VLA-to-Control Integration Pipeline
+
+```
+VLA Output (High-level Actions) → Motion Planning → Whole-Body Control → Hardware
+```
+
+The integration involves several layers:
+1. **Action Interpretation**: Convert VLA actions to motion goals
+2. **Motion Planning**: Generate collision-free trajectories
+3. **Whole-Body Control**: Coordinate multiple tasks simultaneously
+4. **Low-level Control**: Execute on hardware with safety
+
+### Balance and Stability Considerations
+
+Humanoid robots operate near their stability limits. Key concepts include:
+- **Zero Moment Point (ZMP)**: Point where net moment is zero
+- **Capture Point**: Location where robot can come to rest
+- **Support Polygon**: Convex hull of contact points
+- **Centroidal Dynamics**: Simplified model of robot's center of mass
+
+## Worked Example: VLA-Driven Whole-Body Controller
+
+Let's implement a whole-body controller that integrates VLA outputs:
+
+```python
+import numpy as np
+import pinocchio as pin
+from scipy.spatial.transform import Rotation as R
+import torch
+
+class VLAWholeBodyController:
+    """Whole-body controller for humanoid robot using VLA guidance."""
+
+    def __init__(self, robot_model_path):
+        # Load robot model (simplified - in practice use URDF/SDF)
+        self.model = self._load_robot_model(robot_model_path)
+        self.data = self.model.createData()
+
+        # Initialize control variables
+        self.q = np.zeros(self.model.nq)  # Joint positions
+        self.v = np.zeros(self.model.nv)  # Joint velocities
+
+        # Task weights
+        self.weights = {
+            'balance': 10.0,
+            'manipulation': 5.0,
+            'posture': 1.0,
+            'avoidance': 2.0
+        }
+
+    def _load_robot_model(self, path):
+        """Load robot model from URDF/SDF."""
+        # In practice, load from file
+        # For demo, return a simple model
+        class DummyModel:
+            def __init__(self):
+                self.nq = 32  # 32 DOF humanoid
+                self.nv = 31  # 31 velocity variables (floating base)
+            def createData(self):
+                return object()
+        return DummyModel()
+
+    def compute_control(self, vla_action, current_state):
+        """
+        Compute whole-body control from VLA action and current state.
+
+        Args:
+            vla_action: Action predicted by VLA model (joint positions or velocities)
+            current_state: Current robot state (joint positions, velocities, IMU)
+
+        Returns:
+            joint_commands: Commands for each joint
+        """
+        # Parse VLA action
+        target_positions = self._parse_vla_action(vla_action)
+
+        # Compute whole-body control using task-priority framework
+        joint_commands = self._whole_body_control(
+            target_positions,
+            current_state
+        )
+
+        # Apply safety constraints
+        joint_commands = self._apply_safety_constraints(joint_commands)
+
+        return joint_commands
+
+    def _parse_vla_action(self, vla_action):
+        """Parse high-level VLA action into specific targets."""
+        # VLA action might be: [arm_joints, leg_joints, base_motion, ...]
+        # For demo, assume it's directly joint positions
+        return vla_action
+
+    def _whole_body_control(self, target_positions, current_state):
+        """Compute whole-body control using quadratic programming."""
+        # This is a simplified implementation
+        # In practice, use a whole-body controller like HRPD, CoM admittance, etc.
+
+        # Compute desired joint positions as blend of VLA target and current
+        alpha = 0.1  # Control rate
+        current_positions = current_state['joint_positions']
+
+        desired_positions = (1 - alpha) * current_positions + alpha * target_positions
+
+        # Add balance constraints (simplified)
+        desired_positions = self._apply_balance_constraints(desired_positions)
+
+        return desired_positions
+
+    def _apply_balance_constraints(self, positions):
+        """Apply balance and stability constraints."""
+        # Simplified balance constraint
+        # In practice, compute ZMP, capture point, etc.
+        return positions  # Placeholder
+
+    def _apply_safety_constraints(self, commands):
+        """Apply joint limits and safety constraints."""
+        # Apply joint limits
+        min_limits = np.full(len(commands), -2.0)  # Example limits
+        max_limits = np.full(len(commands), 2.0)
+
+        commands = np.clip(commands, min_limits, max_limits)
+
+        # Apply velocity limits
+        max_velocities = np.full(len(commands), 1.0)
+        # This would require comparing to current state
+
+        return commands
+
+# Example usage
+controller = VLAWholeBodyController("humanoid.urdf")
+vla_output = np.random.randn(32)  # 32 DOF humanoid action
+current_state = {
+    'joint_positions': np.zeros(32),
+    'joint_velocities': np.zeros(31),
+    'imu_data': np.array([0, 0, 9.81])  # Gravity vector
+}
+
+commands = controller.compute_control(vla_output, current_state)
+print(f"Generated {len(commands)} joint commands")
+```
+
+## Hands-On Code: ROS 2 Integration for VLA Control
+
+Let's create an example that integrates VLA control with ROS 2:
+
+```python
+# examples/module-4-vla-humanoids/chapter-2/vla_ros_integration.py
+#!/usr/bin/env python3
+"""
+VLA-ROS 2 Integration for Humanoid Control
+Demonstrates how to integrate VLA models with ROS 2 control framework.
+"""
+
+import rclpy
+from rclpy.node import Node
+from sensor_msgs.msg import Image, JointState
+from geometry_msgs.msg import Twist
+from std_msgs.msg import String
+from control_msgs.msg import JointTrajectoryControllerState
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+import numpy as np
+import torch
+from transformers import AutoModel, AutoTokenizer
+
+
+class VLAControlNode(Node):
+    """ROS 2 node for VLA-based humanoid control."""
+
+    def __init__(self):
+        super().__init__('vla_control_node')
+
+        # Publishers and subscribers
+        self.joint_pub = self.create_publisher(JointState, '/joint_states', 10)
+        self.command_pub = self.create_publisher(JointTrajectory, '/humanoid_controller/joint_trajectory', 10)
+        self.vision_sub = self.create_subscription(Image, '/camera/rgb/image_raw', self.vision_callback, 10)
+        self.instruction_sub = self.create_subscription(String, '/vla/instruction', self.instruction_callback, 10)
+
+        # VLA model (using dummy for demo)
+        self.vla_model = self._initialize_vla_model()
+
+        # Robot state
+        self.current_joint_positions = np.zeros(32)  # 32 DOF humanoid
+        self.last_vision_frame = None
+        self.pending_instruction = None
+
+        # Control timer
+        self.control_timer = self.create_timer(0.05, self.control_loop)  # 20 Hz control
+
+        self.get_logger().info('VLA Control Node initialized')
+
+    def _initialize_vla_model(self):
+        """Initialize VLA model for inference."""
+        # In practice, load a pre-trained VLA model
+        # For demo, use a simple function
+        class DummyVLA:
+            def predict_action(self, image, instruction):
+                # Dummy action prediction
+                if "walk" in instruction.lower():
+                    return np.array([0.0, 0.0, 0.0, 0.1, 0.1, 0.0] + [0.0] * 26)  # Walking gait
+                elif "arm" in instruction.lower() or "pick" in instruction.lower():
+                    return np.array([0.1, -0.5, 0.3] + [0.0] * 29)  # Arm movement
+                else:
+                    return np.zeros(32)  # Neutral position
+
+        return DummyVLA()
+
+    def vision_callback(self, msg):
+        """Handle incoming camera images."""
+        # Convert ROS image to format suitable for VLA
+        # In practice, process the image here
+        self.last_vision_frame = msg
+        self.get_logger().debug('Received vision frame')
+
+    def instruction_callback(self, msg):
+        """Handle incoming natural language instructions."""
+        self.pending_instruction = msg.data
+        self.get_logger().info(f'Received instruction: {msg.data}')
+
+    def control_loop(self):
+        """Main control loop."""
+        if self.pending_instruction and self.last_vision_frame:
+            # Process with VLA model
+            action = self.vla_model.predict_action(self.last_vision_frame, self.pending_instruction)
+
+            # Convert to ROS trajectory command
+            trajectory = self._action_to_trajectory(action)
+
+            # Publish command
+            self.command_pub.publish(trajectory)
+
+            # Clear pending instruction
+            self.pending_instruction = None
+
+            self.get_logger().info(f'Executed VLA action: {action[:3]}...')
+
+    def _action_to_trajectory(self, action):
+        """Convert VLA action to ROS JointTrajectory message."""
+        trajectory = JointTrajectory()
+        trajectory.joint_names = [f'joint_{i}' for i in range(len(action))]  # Simplified names
+
+        point = JointTrajectoryPoint()
+        point.positions = action.tolist()
+        point.velocities = [0.0] * len(action)  # Zero velocity for simplicity
+        point.accelerations = [0.0] * len(action)
+
+        # Execute in 0.1 seconds (fast response)
+        point.time_from_start.sec = 0
+        point.time_from_start.nanosec = 100000000  # 100ms
+
+        trajectory.points = [point]
+
+        return trajectory
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    vla_node = VLAControlNode()
+
+    try:
+        rclpy.spin(vla_node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        vla_node.destroy_node()
+        rclpy.shutdown()
+
+    print("\n=== VLA-ROS Integration Demo Complete ===")
+    print("Key concepts demonstrated:")
+    print("1. VLA model integration with ROS 2")
+    print("2. Natural language instruction processing")
+    print("3. Real-time control loop")
+    print("4. Trajectory command generation")
+
+
+if __name__ == '__main__':
+    main()
+
+```
+
+## Application: Real-World Humanoid Control Scenarios
+
+### Walking and Navigation
+- **Challenge**: Converting VLA walking intentions to stable gait patterns
+- **Solution**: Use VLA for high-level gait selection, whole-body control for stability
+- **Implementation**: VLA → Step timing/locations → Inverse kinematics → Joint commands
+
+### Manipulation and Grasping
+- **Challenge**: Converting VLA grasp intentions to precise hand configurations
+- **Solution**: VLA for grasp planning, inverse kinematics for arm positioning
+- **Implementation**: VLA → Grasp pose → IK solver → Joint commands
+
+### Multi-Task Coordination
+- **Challenge**: Balancing multiple objectives (balance, manipulation, locomotion)
+- **Solution**: Task-priority whole-body control with VLA guidance
+- **Implementation**: VLA → Task weights → Prioritized optimization → Joint commands
+
+## Pitfalls and Best Practices
+
+### Common Pitfalls
+1. **Latency Mismatch**: VLA inference too slow for real-time control
+2. **Safety Violations**: VLA actions may violate physical constraints
+3. **Balance Instability**: VLA actions may compromise humanoid stability
+4. **Integration Complexity**: Difficulty integrating VLA with existing control
+
+### Best Practices
+1. **Hierarchical Control**: Use VLA for high-level decisions, traditional control for low-level execution
+2. **Safety Monitoring**: Continuously monitor balance and joint limits
+3. **Fallback Systems**: Have traditional control as backup when VLA fails
+4. **Performance Optimization**: Optimize VLA models for real-time inference
+
+## Exercises
+
+1. **Implementation**: Extend the whole-body controller to handle contact constraints
+2. **Safety**: Add ZMP-based balance checking to the control pipeline
+3. **Integration**: Implement a ROS 2 action server that uses VLA for planning
+4. **Evaluation**: Create metrics to measure humanoid control stability with VLA
+
+## References
+
+- [Whole-Body Control Survey](https://arxiv.org/abs/1809.08554)
+- [Humanoid Balance Control](https://ieeexplore.ieee.org/document/8460822)
+- [ROS 2 Control Framework](https://control.ros.org/)
+- [VLA-Enabled Robotics](https://arxiv.org/abs/2306.00958)

@@ -1,0 +1,39 @@
+graph LR
+    subgraph "Low Fidelity (Fast)"
+        LF1[Rigid Bodies Only]
+        LF2[Point Contact]
+        LF3[Deterministic]
+        LF4[Simple Geometry]
+        LF_PERF["⚡ 10,000+ steps/sec<br/>Use: RL Training"]
+    end
+
+    subgraph "Medium Fidelity (Balanced)"
+        MF1[Soft Contact]
+        MF2[Friction Models]
+        MF3[Sensor Noise]
+        MF4[Detailed Meshes]
+        MF_PERF["⚖️ 1,000-5,000 steps/sec<br/>Use: Validation"]
+    end
+
+    subgraph "High Fidelity (Slow)"
+        HF1[Deformable Objects]
+        HF2[Friction Ellipsoid]
+        HF3[Ray-traced Sensors]
+        HF4[Realistic Materials]
+        HF_PERF["🐢 100-1,000 steps/sec<br/>Use: Final Testing"]
+    end
+
+    LF1 --> LF2 --> LF3 --> LF4 --> LF_PERF
+    MF1 --> MF2 --> MF3 --> MF4 --> MF_PERF
+    HF1 --> HF2 --> HF3 --> HF4 --> HF_PERF
+
+    LF_PERF -.Increase Fidelity.-> MF_PERF
+    MF_PERF -.Increase Fidelity.-> HF_PERF
+
+    classDef lowStyle fill:#7ED321,stroke:#5A9B18,stroke-width:2px,color:#000
+    classDef medStyle fill:#F5A623,stroke:#C27D1A,stroke-width:2px,color:#000
+    classDef highStyle fill:#D0021B,stroke:#9B0114,stroke-width:2px,color:#fff
+
+    class LF1,LF2,LF3,LF4,LF_PERF lowStyle
+    class MF1,MF2,MF3,MF4,MF_PERF medStyle
+    class HF1,HF2,HF3,HF4,HF_PERF highStyle

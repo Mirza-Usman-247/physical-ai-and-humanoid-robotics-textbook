@@ -1,0 +1,22 @@
+# ROS 2 Python client library
+# Install with: pip install -r requirements.txt
+# Note: ROS 2 Humble must be installed separately via apt/dnf/brew
+
+# Core ROS 2 Python library
+# Installed as part of ROS 2 Humble - listed here for reference only
+# rclpy>=3.3.0
+
+# Standard message types (included with ROS 2)
+# std_msgs
+# sensor_msgs
+# geometry_msgs
+
+# For custom message generation (development only)
+# rosidl_default_generators
+
+# Optional: For type hints and development
+typing-extensions>=4.0.0
+
+# Optional: For data visualization in examples
+# numpy>=1.21.0
+# matplotlib>=3.5.0

@@ -1,0 +1,62 @@
+graph TD
+    subgraph "QoS Profile Comparison"
+        direction TB
+    end
+
+    subgraph "Sensor Data: Best Effort"
+        BE1["Reliability: BEST_EFFORT"]
+        BE2["Durability: VOLATILE"]
+        BE3["History: KEEP_LAST depth=1"]
+        BE4["Deadline: 100ms"]
+        BE5["Lifespan: 500ms"]
+
+        BE_USE["Use Cases:<br/>- Camera streams<br/>- LiDAR scans<br/>- IMU data<br/>- High-frequency odometry"]
+        BE_TRADE["Trade-offs:<br/>✅ Low latency<br/>✅ Lower bandwidth<br/>✅ No retransmits<br/>❌ May lose messages<br/>❌ No late-joiner support"]
+    end
+
+    subgraph "Command Data: Reliable"
+        R1["Reliability: RELIABLE"]
+        R2["Durability: VOLATILE"]
+        R3["History: KEEP_LAST depth=10"]
+        R4["Deadline: 50ms"]
+        R5["Lifespan: 1s"]
+
+        R_USE["Use Cases:<br/>- Velocity commands<br/>- Joint targets<br/>- Mode switches<br/>- Emergency stop"]
+        R_TRADE["Trade-offs:<br/>✅ Guaranteed delivery<br/>✅ Ordered messages<br/>✅ Automatic retries<br/>❌ Higher latency<br/>❌ More bandwidth"]
+    end
+
+    subgraph "Configuration: Transient Local"
+        TL1["Reliability: RELIABLE"]
+        TL2["Durability: TRANSIENT_LOCAL"]
+        TL3["History: KEEP_LAST depth=1"]
+        TL4["Deadline: N/A"]
+        TL5["Lifespan: INFINITE"]
+
+        TL_USE["Use Cases:<br/>- Robot description<br/>- Map data<br/>- Parameter updates<br/>- System configuration"]
+        TL_TRADE["Trade-offs:<br/>✅ Late-joiner support<br/>✅ Persistent in memory<br/>✅ Zero message loss<br/>❌ Memory overhead<br/>❌ Slower startup"]
+    end
+
+    subgraph "QoS Matching Rules"
+        M1["Publisher: BEST_EFFORT<br/>Subscriber: BEST_EFFORT<br/>Result: ✅ COMPATIBLE"]
+        M2["Publisher: RELIABLE<br/>Subscriber: RELIABLE<br/>Result: ✅ COMPATIBLE"]
+        M3["Publisher: BEST_EFFORT<br/>Subscriber: RELIABLE<br/>Result: ❌ INCOMPATIBLE"]
+        M4["Publisher: RELIABLE<br/>Subscriber: BEST_EFFORT<br/>Result: ✅ COMPATIBLE"]
+    end
+
+    BE1 --> BE2 --> BE3 --> BE4 --> BE5 --> BE_USE --> BE_TRADE
+    R1 --> R2 --> R3 --> R4 --> R5 --> R_USE --> R_TRADE
+    TL1 --> TL2 --> TL3 --> TL4 --> TL5 --> TL_USE --> TL_TRADE
+
+    M1 --> M2 --> M3 --> M4
+
+    classDef beStyle fill:#50E3C2,stroke:#3AB09E,stroke-width:2px,color:#000
+    classDef reliableStyle fill:#F5A623,stroke:#C27D1A,stroke-width:2px,color:#fff
+    classDef tlStyle fill:#BD10E0,stroke:#8B0AA8,stroke-width:2px,color:#fff
+    classDef matchStyle fill:#D0021B,stroke:#9B0114,stroke-width:2px,color:#fff
+    classDef tradeStyle fill:#E8E8E8,stroke:#999,stroke-width:1px,color:#000
+
+    class BE1,BE2,BE3,BE4,BE5 beStyle
+    class R1,R2,R3,R4,R5 reliableStyle
+    class TL1,TL2,TL3,TL4,TL5 tlStyle
+    class M1,M2,M3,M4 matchStyle
+    class BE_USE,BE_TRADE,R_USE,R_TRADE,TL_USE,TL_TRADE tradeStyle

@@ -1,0 +1,36 @@
+graph TD
+    Start[Simulation Step Start]
+    BroadPhase[Broad Phase Collision<br/>Bounding Volumes]
+    NarrowPhase[Narrow Phase Collision<br/>Precise Geometry]
+    ConstraintSetup[Constraint Setup<br/>Joints + Contacts]
+    Solver[Constraint Solver<br/>LCP/PGS Iterations]
+    Integration[Numerical Integration<br/>Update Positions/Velocities]
+    PostProcess[Post-Processing<br/>Render, Sensors, Logging]
+    End[Next Time Step]
+
+    Start --> BroadPhase
+    BroadPhase -->|Potential Pairs| NarrowPhase
+    NarrowPhase -->|Contact Points| ConstraintSetup
+    ConstraintSetup -->|Jacobians| Solver
+    Solver -->|Impulses/Forces| Integration
+    Integration -->|New State| PostProcess
+    PostProcess --> End
+    End -.dt.-> Start
+
+    subgraph "Performance Bottlenecks"
+        B1[🔴 Narrow Phase<br/>Complex meshes]
+        B2[🔴 Solver Iterations<br/>Many contacts]
+        B3[🟡 Integration<br/>Stiff systems]
+    end
+
+    NarrowPhase -.->|Slow| B1
+    Solver -.->|Slow| B2
+    Integration -.->|Slow| B3
+
+    classDef normalStyle fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    classDef bottleneckStyle fill:#D0021B,stroke:#9B0114,stroke-width:2px,color:#fff
+    classDef warnStyle fill:#F5A623,stroke:#C27D1A,stroke-width:2px,color:#000
+
+    class Start,BroadPhase,NarrowPhase,ConstraintSetup,Solver,Integration,PostProcess,End normalStyle
+    class B1,B2 bottleneckStyle
+    class B3 warnStyle

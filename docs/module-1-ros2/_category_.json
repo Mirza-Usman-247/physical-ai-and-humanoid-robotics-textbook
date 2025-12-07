@@ -1,0 +1,8 @@
+{
+  "label": "Module 1: ROS 2 for Physical AI",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Weeks 3-5: ROS 2 Humble architecture, pub/sub, services/actions, tf transforms, and robot control"
+  }
+}

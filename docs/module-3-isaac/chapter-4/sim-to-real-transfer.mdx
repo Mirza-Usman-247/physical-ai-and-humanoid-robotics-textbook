@@ -1,0 +1,89 @@
+---
+title: "Sim-to-Real Transfer with Isaac Sim"
+description: "Domain randomization, system identification, and reality gap bridging"
+sidebar_position: 4
+keywords: [sim-to-real, domain-randomization, transfer-learning, isaac-sim, reality-gap]
+---
+
+# Sim-to-Real Transfer with Isaac Sim
+
+## Learning Objectives
+
+1. Implement domain randomization for visual and physics variation
+2. Apply system identification to match simulation parameters to reality
+3. Use Replicator for automatic randomization of lighting, textures, and dynamics
+4. Validate sim-trained policies on physical robots
+5. Measure and minimize the reality gap with metrics
+
+## Core Concepts
+
+### The Reality Gap
+
+The **reality gap** is the discrepancy between simulation and real-world behavior caused by:
+
+- **Visual Differences**: Textures, lighting, camera models
+- **Physics Approximations**: Contact modeling, friction, damping
+- **Sensor Noise**: Cameras, LiDAR, IMU measurement errors
+- **Actuator Dynamics**: Motor response, delays, backlash
+
+### Domain Randomization Strategy
+
+Randomize simulation parameters during training to force policies to be robust:
+
+```python
+import omni.replicator.core as rep
+
+with rep.trigger.on_frame():
+    # Randomize physics
+    rep.randomizer.physics(
+        mass=rep.distribution.uniform(0.8, 1.2),
+        friction=rep.distribution.uniform(0.5, 1.5)
+    )
+
+    # Randomize visuals
+    rep.randomizer.light(
+        intensity=rep.distribution.uniform(500, 2000),
+        temperature=rep.distribution.uniform(3000, 8000)
+    )
+
+    rep.randomizer.color(
+        roughness=rep.distribution.uniform(0.2, 0.8),
+        metallic=rep.distribution.uniform(0.0, 0.5)
+    )
+```
+
+### System Identification Workflow
+
+1. **Collect Real Data**: Record trajectories from physical robot
+2. **Optimize Simulation Parameters**: Minimize error between sim and real
+3. **Validate**: Compare key metrics (contact forces, velocities)
+
+```python
+from scipy.optimize import minimize
+
+def objective(params, real_trajectory):
+    # Run simulation with params
+    sim_trajectory = run_simulation(params)
+
+    # Compute error
+    error = np.linalg.norm(sim_trajectory - real_trajectory)
+    return error
+
+# Optimize
+result = minimize(objective, initial_params, args=(real_data,))
+optimal_params = result.x
+```
+
+## Application
+
+- **Manipulation**: Sim-train grasping policies, deploy to real arm
+- **Locomotion**: Train quadruped gaits in Isaac Gym, transfer to Unitree Go1
+- **Navigation**: Learn vision-based navigation, deploy to mobile robot
+
+See `examples/module-3-isaac/chapter-4/` for domain randomization scripts.
+
+## References
+
+- [Domain Randomization for Transferring Deep Neural Networks](https://arxiv.org/abs/1703.06907)
+- [Sim-to-Real Transfer Survey](https://arxiv.org/abs/2011.01403)
+- [Isaac Sim Replicator](https://docs.omniverse.nvidia.com/extensions/latest/ext_replicator.html)

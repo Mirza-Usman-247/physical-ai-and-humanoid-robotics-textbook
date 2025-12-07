@@ -1,0 +1,48 @@
+graph TB
+    subgraph Simulation["Simulation World"]
+        SIMPHYS["Idealized Physics<br/>(Perfect contacts)"]
+        SIMVIS["Perfect Rendering<br/>(No noise)"]
+        SIMSENS["Ideal Sensors<br/>(No latency)"]
+    end
+
+    subgraph Gap["Reality Gap"]
+        PHYS["Physics Errors<br/>(Friction, damping)"]
+        VIS["Visual Differences<br/>(Lighting, textures)"]
+        SENS["Sensor Noise<br/>(Blur, latency)"]
+        ACT["Actuator Dynamics<br/>(Delays, backlash)"]
+    end
+
+    subgraph Reality["Physical World"]
+        REALPHYS["Complex Contacts"]
+        REALVIS["Variable Lighting"]
+        REALSENS["Noisy Sensors"]
+        REALACT["Motor Delays"]
+    end
+
+    subgraph Bridge["Gap Bridging"]
+        DR["Domain Randomization"]
+        SYSID["System Identification"]
+        FINETUNING["Real-World Fine-Tuning"]
+    end
+
+    Simulation --> Gap
+    Gap --> Reality
+
+    SIMPHYS -.-> PHYS
+    SIMVIS -.-> VIS
+    SIMSENS -.-> SENS
+
+    PHYS --> REALPHYS
+    VIS --> REALVIS
+    SENS --> REALSENS
+    ACT --> REALACT
+
+    Gap --> Bridge
+    DR --> Reality
+    SYSID --> Simulation
+    FINETUNING --> Reality
+
+    style Simulation fill:#e1f5ff
+    style Gap fill:#ffe1e1
+    style Reality fill:#fff4e1
+    style Bridge fill:#e1ffe1

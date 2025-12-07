@@ -1,0 +1,85 @@
+---
+title: "Reinforcement Learning with Isaac Gym"
+description: "Massively parallel RL training, GPU-accelerated environments, and policy learning"
+sidebar_position: 3
+keywords: [isaac-gym, reinforcement-learning, gpu-acceleration, policy-learning, parallel-environments]
+---
+
+# Reinforcement Learning with Isaac Gym
+
+## Learning Objectives
+
+1. Configure massively parallel environments (1000+) on a single GPU
+2. Implement PPO training loops with Isaac Gym
+3. Design reward functions for locomotion and manipulation tasks
+4. Monitor training with Tensorboard and WandB
+5. Deploy learned policies to Isaac Sim for validation
+
+## Core Concepts
+
+### Isaac Gym Architecture
+
+Isaac Gym enables GPU-accelerated RL by running thousands of environments in parallel:
+
+```python
+from isaacgym import gymapi
+
+gym = gymapi.acquire_gym()
+
+# Create 4096 parallel environments
+num_envs = 4096
+envs = []
+for i in range(num_envs):
+    env = gym.create_env(sim, lower, upper, num_per_row)
+    envs.append(env)
+
+# Step all environments simultaneously on GPU
+gym.simulate(sim)
+gym.fetch_results(sim, True)
+```
+
+### Vectorized Environment API
+
+- **Observation Tensor**: (num_envs, obs_dim) on GPU
+- **Action Tensor**: (num_envs, act_dim) on GPU
+- **Reward Tensor**: (num_envs,) computed in parallel
+- **Reset Mechanism**: Automatic environment reset on termination
+
+### PPO Training Loop
+
+```python
+import torch
+
+class PPOAgent:
+    def __init__(self, obs_dim, act_dim, num_envs):
+        self.actor = ActorNetwork(obs_dim, act_dim)
+        self.critic = CriticNetwork(obs_dim)
+        self.num_envs = num_envs
+
+    def train_step(self, obs, actions, rewards, dones):
+        # Compute advantages
+        values = self.critic(obs)
+        advantages = rewards - values
+
+        # Update actor
+        log_probs = self.actor.log_prob(obs, actions)
+        actor_loss = -(log_probs * advantages.detach()).mean()
+
+        # Update critic
+        critic_loss = advantages.pow(2).mean()
+
+        return actor_loss, critic_loss
+```
+
+## Application
+
+- **Locomotion**: Train quadruped/humanoid gaits in 30-60 minutes
+- **Manipulation**: Learn complex pick-and-place policies
+- **Sim-to-Real**: Transfer policies to physical robots with domain randomization
+
+See `examples/module-3-isaac/chapter-3/` for PPO training scripts.
+
+## References
+
+- [Isaac Gym Documentation](https://developer.nvidia.com/isaac-gym)
+- [Proximal Policy Optimization](https://arxiv.org/abs/1707.06347)

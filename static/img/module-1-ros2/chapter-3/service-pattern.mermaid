@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant Client as Service Client
+    participant Server as Service Server
+
+    Client->>Server: Request<br/>(blocking)
+    Note over Server: Process Request<br/>(synchronous)
+    Server-->>Client: Response<br/>(immediate)
+    Note over Client: Receive Response<br/>(continue execution)
+
+    rect rgb(200, 220, 255)
+    Note over Client,Server: Key Characteristics:<br/>- Synchronous/blocking<br/>- Request-Reply pattern<br/>- Client waits for response<br/>- One-to-one communication
+    end

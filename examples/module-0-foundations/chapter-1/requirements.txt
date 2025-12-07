@@ -1,0 +1,3 @@
+# Requirements for Chapter 1 examples
+# No special dependencies needed for basic Physical AI demonstration
+# Python 3.8+ standard library only

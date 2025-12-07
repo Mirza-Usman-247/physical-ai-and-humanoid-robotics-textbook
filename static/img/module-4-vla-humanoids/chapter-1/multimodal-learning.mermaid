@@ -1,0 +1,33 @@
+flowchart LR
+    subgraph Input["Multi-Modal Input"]
+        IMG["RGB Image<br/>(224×224×3)"]
+        TEXT["Natural Language<br/>'Bring me coffee'"]
+        STATE["Robot State<br/>(Joint angles)"]
+    end
+
+    subgraph Processing["Multi-Modal Processing"]
+        VISION["Vision Processing<br/>(Feature extraction)"]
+        LANG["Language Processing<br/>(Tokenization, encoding)"]
+        FUSION["Cross-Modal Fusion<br/>(Attention mechanisms)"]
+    end
+
+    subgraph Output["Action Output"]
+        JOINT["Joint Positions<br/>(32 DOF)"]
+        GRIP["Gripper Control"]
+        BASE["Base Motion"]
+    end
+
+    IMG --> VISION
+    TEXT --> LANG
+    STATE --> FUSION
+
+    VISION --> FUSION
+    LANG --> FUSION
+
+    FUSION --> JOINT
+    FUSION --> GRIP
+    FUSION --> BASE
+
+    style Input fill:#e1f5ff
+    style Processing fill:#fff4e1
+    style Output fill:#e1ffe1

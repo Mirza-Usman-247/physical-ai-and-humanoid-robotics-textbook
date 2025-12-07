@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p static/img/module-0-foundations/chapter-2)",
+      "Bash(npm start)",
+      "Bash(mkdir -p src/plugins)",
+      "Bash(if [ -f \".specify/scripts/powershell/check-prerequisites.ps1\" ])",
+      "Bash(then pwsh -ExecutionPolicy Bypass -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)",
+      "Bash(else echo '{\"\"FEATURE_DIR\"\":\"\".\"\", \"\"AVAILABLE_DOCS\"\":[]}')",
+      "Bash(fi)",
+      "Bash(npm run build)",
+      "Bash(mkdir:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

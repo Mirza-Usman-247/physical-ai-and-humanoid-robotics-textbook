@@ -1,0 +1,51 @@
+graph TB
+    subgraph Vision["Vision Sensors"]
+        CAM1["RGB Camera"]
+        CAM2["Depth Camera"]
+        CAM3["Semantic Seg"]
+    end
+
+    subgraph Range["Range Sensors"]
+        LIDAR["LiDAR Scan"]
+        RADAR["Radar (optional)"]
+    end
+
+    subgraph Inertial["Inertial Sensors"]
+        IMU["IMU"]
+        ODOM["Wheel Odometry"]
+    end
+
+    subgraph Fusion["Multi-Modal Fusion"]
+        EARLY["Early Fusion<br/>(Feature Level)"]
+        LATE["Late Fusion<br/>(Decision Level)"]
+        KALMAN["Kalman Filter"]
+    end
+
+    subgraph Output["Fused Output"]
+        MAP["3D Map"]
+        TRACK["Object Tracking"]
+        LOC["Localization"]
+    end
+
+    CAM1 --> EARLY
+    CAM2 --> EARLY
+    CAM3 --> LATE
+
+    LIDAR --> EARLY
+    RADAR --> LATE
+
+    IMU --> KALMAN
+    ODOM --> KALMAN
+
+    EARLY --> Output
+    LATE --> Output
+    KALMAN --> Output
+
+    MAP --> TRACK
+    TRACK --> LOC
+
+    style Vision fill:#e1f5ff
+    style Range fill:#fff4e1
+    style Inertial fill:#ffe1f0
+    style Fusion fill:#f0e1ff
+    style Output fill:#e1ffe1

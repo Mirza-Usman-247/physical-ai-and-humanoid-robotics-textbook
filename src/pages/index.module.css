@@ -1,0 +1,53 @@
+/* Hero banner styles */
+.heroBanner {
+  padding: 4rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 2rem;
+  }
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+/* Features section */
+.features {
+  display: flex;
+  align-items: center;
+  padding: 2rem 0;
+  width: 100%;
+}
+
+.features .row {
+  justify-content: center;
+}
+
+/* Module overview section */
+.moduleOverview {
+  padding: 4rem 0;
+  background-color: var(--ifm-color-emphasis-100);
+}
+
+.moduleOverview h2 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+@media screen and (max-width: 996px) {
+  .moduleOverview {
+    padding: 2rem 0;
+  }
+
+  .moduleOverview h2 {
+    font-size: 2rem;
+  }
+}

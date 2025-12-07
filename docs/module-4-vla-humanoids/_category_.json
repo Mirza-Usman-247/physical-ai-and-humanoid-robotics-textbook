@@ -1,0 +1,8 @@
+{
+  "label": "Module 4: VLA Humanoid Robotics",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "description": "Weeks 11-12: Vision-Language-Action models and Whisper integration for humanoid robots"
+  }
+}

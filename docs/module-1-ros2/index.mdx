@@ -1,0 +1,80 @@
+---
+title: Module 1 - ROS 2 for Physical AI
+sidebar_position: 2
+week_breakdown:
+  module: "Module 1: ROS 2 for Physical AI"
+  weeks: ["Week 3", "Week 4", "Week 5"]
+  total_weeks: 3
+  chapters:
+    - { week: "Week 3", chapter: "Chapter 1: ROS 2 Architecture & Concepts", topics: ["ROS 2 Architecture", "Nodes", "Graph Management", "Services"] }
+    - { week: "Week 3", chapter: "Chapter 2: Publisher-Subscriber Pattern", topics: ["Topics", "Messages", "QoS Policies", "Pub/Sub Implementation"] }
+    - { week: "Week 4", chapter: "Chapter 3: Services & Actions", topics: ["Services vs Actions", "Request/Response", "Action Architecture", "Implementation"] }
+    - { week: "Week 4", chapter: "Chapter 4: TF Transforms", topics: ["Coordinate Frames", "Transformations", "tf2 Library", "Practical Applications"] }
+    - { week: "Week 5", chapter: "Chapter 5: Robot Control", topics: ["Joint Control", "ROS 2 Control", "Hardware Interfaces", "Real-world Deployment"] }
+learning_outcomes:
+  - "Understand ROS 2 Humble architecture and distributed computing concepts"
+  - "Implement publisher-subscriber communication patterns with appropriate QoS settings"
+  - "Design services and actions for synchronous and asynchronous robot operations"
+  - "Work with coordinate frame transformations using tf2 for multi-sensor systems"
+  - "Control physical and simulated robots using ROS 2 control frameworks"
+prerequisites:
+  - "Module 0: Physical AI Foundations"
+  - "Basic Python or C++ programming knowledge"
+  - "Linux command line familiarity"
+assessment_rubric:
+  novice: "Can describe basic ROS 2 concepts and execute provided examples"
+  proficient: "Can implement custom ROS 2 nodes with pub/sub, services, and transforms"
+  advanced: "Can architect complex multi-node ROS 2 systems with proper error handling and real-time constraints"
+---
+
+# Module 1: ROS 2 for Physical AI
+
+## Overview
+
+This module provides comprehensive coverage of ROS 2 (Robot Operating System 2) for Physical AI applications. ROS 2 is the industry standard for robotics software development, providing distributed computing capabilities, message passing, and hardware abstraction layers essential for embodied AI systems.
+
+## Weekly Breakdown
+
+| Week | Chapter | Topics | Learning Objectives | Exercises |
+|------|---------|--------|-------------------|-----------|
+| Week 3 | Chapter 1: ROS 2 Architecture & Concepts | ROS 2 Architecture, Nodes, Graph Management, Services | Understand ROS 2 distributed architecture | Hands-on: ROS 2 workspace setup and basic node creation |
+| Week 3 | Chapter 2: Publisher-Subscriber Pattern | Topics, Messages, QoS Policies, Pub/Sub Implementation | Implement pub/sub communication patterns | Lab: Create sensor publisher and data subscriber |
+| Week 4 | Chapter 3: Services & Actions | Services vs Actions, Request/Response, Action Architecture | Design synchronous and asynchronous robot operations | Project: Implement robot service for navigation requests |
+| Week 4 | Chapter 4: TF Transforms | Coordinate Frames, Transformations, tf2 Library | Work with coordinate frame transformations | Lab: Multi-sensor fusion with tf2 |
+| Week 5 | Chapter 5: Robot Control | Joint Control, ROS 2 Control, Hardware Interfaces | Control physical and simulated robots | Capstone: Integrate all concepts for robot control |
+
+## Learning Outcomes
+
+By the end of this module, students will be able to:
+
+1. Understand and implement ROS 2 Humble architecture for distributed robotics applications
+2. Design and implement publisher-subscriber communication patterns with appropriate Quality of Service (QoS) configurations
+3. Create both services for synchronous operations and actions for asynchronous long-running tasks
+4. Work with coordinate frame transformations using the tf2 library for multi-sensor systems
+5. Control both simulated and physical robots using ROS 2 control frameworks
+
+## Prerequisites
+
+- Completion of Module 0: Physical AI Foundations
+- Basic Python or C++ programming knowledge
+- Familiarity with Linux command line operations
+- Understanding of basic robotics concepts (kinematics, sensors)
+
+## Assessment Rubric
+
+### Novice Level
+- Can describe basic ROS 2 concepts and execute provided examples
+- Understands the difference between nodes, topics, and services
+- Can run existing ROS 2 packages and examine their structure
+
+### Proficient Level
+- Can implement custom ROS 2 nodes with pub/sub, services, and transforms
+- Understands Quality of Service (QoS) policies and when to apply them
+- Can create and use custom message types
+- Can debug basic ROS 2 communication issues
+
+### Advanced Level
+- Can architect complex multi-node ROS 2 systems with proper error handling
+- Understands real-time constraints and timing considerations
+- Can optimize ROS 2 systems for performance and reliability
+- Can integrate ROS 2 with other frameworks (Isaac Sim, etc.)

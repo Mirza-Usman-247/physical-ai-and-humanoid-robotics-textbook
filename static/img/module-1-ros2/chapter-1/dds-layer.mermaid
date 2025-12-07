@@ -1,0 +1,46 @@
+graph LR
+    subgraph "Node A"
+        P1[Publisher<br/>rclpy.Publisher]
+    end
+
+    subgraph "Node B"
+        S1[Subscriber<br/>rclpy.Subscription]
+    end
+
+    subgraph "DDS Layer (eProsima Fast DDS)"
+        DP1[DDS DataWriter<br/>QoS: Reliable]
+        DR1[DDS DataReader<br/>QoS: Reliable]
+        DISC[Discovery Service<br/>SPDP/SEDP]
+    end
+
+    subgraph "Network Layer"
+        MC[UDP Multicast<br/>239.255.0.1:7400]
+        UC[UDP Unicast<br/>Direct P2P]
+        SHM[Shared Memory<br/>/dev/shm]
+    end
+
+    P1 -->|Creates| DP1
+    S1 -->|Creates| DR1
+
+    DP1 -.->|1. Announces Topic| DISC
+    DR1 -.->|2. Announces Interest| DISC
+    DISC -.->|3. Matches Endpoints| DP1
+    DISC -.->|3. Matches Endpoints| DR1
+
+    DP1 -->|4a. Local: Zero-copy| SHM
+    SHM -->|4a. Local: Zero-copy| DR1
+
+    DP1 -->|4b. Remote: Serialized| UC
+    UC -->|4b. Remote: Serialized| DR1
+
+    DISC -->|Participant Discovery| MC
+
+    classDef rclpyStyle fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    classDef ddsStyle fill:#BD10E0,stroke:#8B0AA8,stroke-width:2px,color:#fff
+    classDef netStyle fill:#50E3C2,stroke:#3AB09E,stroke-width:2px,color:#fff
+    classDef discStyle fill:#F5A623,stroke:#C27D1A,stroke-width:2px,color:#fff
+
+    class P1,S1 rclpyStyle
+    class DP1,DR1 ddsStyle
+    class MC,UC,SHM netStyle
+    class DISC discStyle

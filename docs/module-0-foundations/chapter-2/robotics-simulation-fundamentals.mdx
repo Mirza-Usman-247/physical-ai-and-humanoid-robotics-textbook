@@ -1,0 +1,487 @@
+---
+sidebar_position: 3
+title: "Chapter 2: Robotics Simulation Fundamentals"
+description: "Core concepts and tools for robotics simulation with ROS 2, Isaac Sim, and Gazebo"
+week: 1
+learning_objectives:
+  - Understand the role of simulation in Physical AI development
+  - Set up and configure ROS 2 for robotics simulation
+  - Work with Isaac Sim for high-fidelity physics simulation
+  - Use Gazebo for robotics testing and validation
+prerequisites:
+  - Chapter 1: Introduction to Physical AI
+  - Basic understanding of 3D coordinate systems
+  - Python programming skills
+weekly_breakdown:
+  week_1:
+    topics: ["Simulation Concepts", "ROS 2 Setup", "Isaac Sim Basics", "Gazebo Introduction"]
+    estimated_time: "2-3 hours"
+    learning_outcomes: ["Configure simulation environments", "Create basic robot models", "Execute simulation workflows"]
+---
+
+# Chapter 2: Robotics Simulation Fundamentals
+
+## Learning Objectives
+
+By the end of this chapter, you will be able to:
+- Explain the importance of simulation in Physical AI development
+- Set up and configure ROS 2 for robotics simulation workflows
+- Create and manipulate robot models in Isaac Sim
+- Use Gazebo for physics-based robotics testing and validation
+- Implement basic robot control algorithms in simulation environments
+
+## Prerequisites
+
+Before starting this chapter, you should have:
+- Completed Chapter 1: Introduction to Physical AI
+- Basic understanding of 3D coordinate systems (frames, transformations)
+- Python programming skills
+- Basic knowledge of Linux command line
+
+## Weekly Mapping
+
+This chapter is part of **Week 1** of the Physical AI Foundations module. It builds on the Physical AI concepts introduced in Chapter 1 and introduces practical simulation tools.
+
+| Section | Topic | Estimated Time | Key Takeaways |
+|---------|-------|----------------|---------------|
+| 2.1 | Simulation in Physical AI | 20 minutes | Why simulation is crucial for Physical AI |
+| 2.2 | ROS 2 Fundamentals | 45 minutes | Core ROS 2 concepts for robotics |
+| 2.3 | Isaac Sim Introduction | 40 minutes | High-fidelity simulation with Isaac Sim |
+| 2.4 | Gazebo Simulation | 35 minutes | Physics-based simulation with Gazebo |
+| 2.5 | Integration Concepts | 20 minutes | Connecting simulation tools |
+
+## Motivating Scenario
+
+Imagine developing a humanoid robot that needs to navigate through a cluttered environment to pick up objects. Before deploying on real hardware, you'd want to test your algorithms in simulation. This chapter introduces you to the tools that make this possible: ROS 2 for communication, Isaac Sim for high-fidelity physics, and Gazebo for efficient testing. Understanding these tools is essential for safe and efficient Physical AI development.
+
+## Core Theory & Mathematics
+
+Simulation in robotics relies on accurate modeling of physical systems. The core mathematical concepts include:
+
+### Rigid Body Dynamics
+
+The motion of rigid bodies is governed by Newton-Euler equations:
+
+**F = ma** (translational motion)
+**τ = Iα** (rotational motion)
+
+Where:
+- F: Force vector
+- m: Mass
+- a: Linear acceleration
+- τ: Torque vector
+- I: Inertia tensor
+- α: Angular acceleration
+
+### Coordinate Transformations
+
+Robots operate in 3D space, requiring transformations between coordinate frames:
+
+**ᴬp = ᴬTᴮ · ᴮp**
+
+Where:
+- ᴬTᴮ: Homogeneous transformation matrix from frame B to frame A
+- ᴮp: Point in frame B
+- ᴬp: Point in frame A
+
+The transformation matrix is:
+
+```
+ᴬTᴮ = [ ᴬRᴮ   ᴬpᴮ]
+      [  0     1 ]
+```
+
+Where ᴬRᴮ is the 3×3 rotation matrix and ᴬpᴮ is the position vector.
+
+### Kinematics
+
+Robot kinematics describes the relationship between joint angles and end-effector position:
+
+**Forward Kinematics**: q → p
+**Inverse Kinematics**: p → q
+
+Where q represents joint angles and p represents end-effector pose.
+
+## Worked Example: Robot Arm Simulation
+
+Let's consider a simple 2-DOF planar robot arm in simulation.
+
+### Mathematical Model
+
+For a 2-DOF arm with link lengths l₁ and l₂:
+
+Forward kinematics:
+```
+x = l₁cos(θ₁) + l₂cos(θ₁ + θ₂)
+y = l₁sin(θ₁) + l₂sin(θ₁ + θ₂)
+```
+
+### ROS 2 Implementation
+
+```python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Float64MultiArray
+from geometry_msgs.msg import Point
+import math
+
+class RobotArmSimulator(Node):
+    def __init__(self):
+        super().__init__('robot_arm_simulator')
+
+        # Link lengths
+        self.l1 = 1.0  # meters
+        self.l2 = 0.8  # meters
+
+        # Joint angles (initially zero)
+        self.joint_angles = [0.0, 0.0]
+
+        # Publishers
+        self.end_effector_pub = self.create_publisher(Point, 'end_effector_position', 10)
+        self.joint_state_pub = self.create_publisher(Float64MultiArray, 'joint_angles', 10)
+
+        # Timer for simulation loop
+        timer_period = 0.1  # seconds
+        self.timer = self.create_timer(timer_period, self.simulation_step)
+
+        self.get_logger().info('Robot Arm Simulator started')
+
+    def forward_kinematics(self, theta1, theta2):
+        """Calculate end-effector position from joint angles"""
+        x = self.l1 * math.cos(theta1) + self.l2 * math.cos(theta1 + theta2)
+        y = self.l1 * math.sin(theta1) + self.l2 * math.sin(theta1 + theta2)
+        return x, y
+
+    def simulation_step(self):
+        """Main simulation loop"""
+        # Calculate end-effector position
+        x, y = self.forward_kinematics(self.joint_angles[0], self.joint_angles[1])
+
+        # Publish end-effector position
+        position_msg = Point()
+        position_msg.x = x
+        position_msg.y = y
+        position_msg.z = 0.0  # Planar robot
+        self.end_effector_pub.publish(position_msg)
+
+        # Publish joint angles
+        joint_msg = Float64MultiArray()
+        joint_msg.data = self.joint_angles
+        self.joint_state_pub.publish(joint_msg)
+
+        self.get_logger().info(f'End-effector: ({x:.2f}, {y:.2f}), Joints: ({self.joint_angles[0]:.2f}, {self.joint_angles[1]:.2f})')
+
+def main(args=None):
+    rclpy.init(args=args)
+    robot_sim = RobotArmSimulator()
+
+    # Example: Move joints in a pattern
+    import time
+    for i in range(100):
+        robot_sim.joint_angles[0] = 0.1 * math.sin(i * 0.1)
+        robot_sim.joint_angles[1] = 0.1 * math.cos(i * 0.1)
+        rclpy.spin_once(robot_sim, timeout_sec=0.1)
+
+    robot_sim.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+### Isaac Sim Integration
+
+```python
+import omni
+from omni.isaac.core import World
+from omni.isaac.core.utils.stage import add_reference_to_stage
+from omni.isaac.core.utils.nucleus import get_assets_root_path
+import numpy as np
+
+# Initialize Isaac Sim
+config = {"renderer": "RayTracedLighting", "headless": False}
+world = World(**config)
+
+# Add a simple robot to the stage
+assets_root_path = get_assets_root_path()
+if assets_root_path is None:
+    print("Could not find Isaac Sim assets. Please enable Isaac Sim Nucleus server.")
+else:
+    # Add a simple robot from the assets
+    add_reference_to_stage(
+        usd_path=assets_root_path + "/Isaac/Robots/Franka/franka_instanceable.usd",
+        prim_path="/World/Robot"
+    )
+
+# Simulation loop
+for i in range(1000):
+    # Apply some simple control
+    world.step(render=True)
+
+    if i % 100 == 0:
+        print(f"Simulation step: {i}")
+
+world.stop()
+```
+
+## Hands-On Code: Setting Up Simulation Environments
+
+### ROS 2 Simulation Setup
+
+```bash
+# Create a workspace for simulation
+mkdir -p ~/simulation_ws/src
+cd ~/simulation_ws
+
+# Clone necessary packages
+git clone -b humble https://github.com/ros-simulation/gazebo_ros_pkgs.git src/gazebo_ros_pkgs
+git clone -b humble https://github.com/ros-controls/ros2_control.git src/ros2_control
+git clone -b humble https://github.com/ros-controls/ros2_controllers.git src/ros2_controllers
+
+# Build the workspace
+colcon build --packages-select gazebo_ros_pkgs ros2_control ros2_controllers
+source install/setup.bash
+```
+
+### Gazebo Simulation Example
+
+```python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+from geometry_msgs.msg import Twist
+from sensor_msgs.msg import LaserScan
+import math
+
+class GazeboRobotController(Node):
+    def __init__(self):
+        super().__init__('gazebo_robot_controller')
+
+        # Publisher for robot velocity commands
+        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+
+        # Subscriber for laser scan data
+        self.scan_sub = self.create_subscription(LaserScan, '/scan', self.scan_callback, 10)
+
+        # Timer for control loop
+        self.timer = self.create_timer(0.1, self.control_loop)
+
+        # Robot state
+        self.laser_data = None
+        self.obstacle_distance = float('inf')
+
+        self.get_logger().info('Gazebo Robot Controller initialized')
+
+    def scan_callback(self, msg):
+        """Process laser scan data"""
+        if len(msg.ranges) > 0:
+            # Get the front-facing distance (middle of the scan)
+            front_idx = len(msg.ranges) // 2
+            self.obstacle_distance = msg.ranges[front_idx]
+
+    def control_loop(self):
+        """Main control loop for obstacle avoidance"""
+        cmd = Twist()
+
+        # Simple obstacle avoidance
+        if self.obstacle_distance is not None and self.obstacle_distance < 1.0:
+            # Obstacle detected, turn
+            cmd.linear.x = 0.2  # Move forward slowly
+            cmd.angular.z = 0.5  # Turn to avoid obstacle
+        else:
+            # No obstacle, move forward
+            cmd.linear.x = 0.5
+            cmd.angular.z = 0.0
+
+        self.cmd_vel_pub.publish(cmd)
+
+def main(args=None):
+    rclpy.init(args=args)
+    controller = GazeboRobotController()
+
+    try:
+        rclpy.spin(controller)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        controller.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+### Launch file for Gazebo simulation
+
+```xml
+<?xml version="1.0"?>
+<launch>
+  <!-- Start Gazebo with a world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch.py">
+    <arg name="world" value="$(find my_robot_description)/worlds/simple_room.world"/>
+  </include>
+
+  <!-- Spawn robot in Gazebo -->
+  <node name="spawn_urdf" pkg="gazebo_ros" exec="spawn_entity.py"
+        args="-entity my_robot -topic robot_description -x 0 -y 0 -z 0.1"/>
+
+  <!-- Launch robot controller -->
+  <node name="robot_controller" pkg="my_robot_controller" exec="gazebo_robot_controller.py"/>
+</launch>
+```
+
+## Application to Humanoid Robots
+
+Simulation is particularly crucial for humanoid robotics due to the complexity and cost of real hardware. Key applications include:
+
+### Whole-Body Control Simulation
+
+Humanoid robots require coordination of many degrees of freedom. Simulation allows testing of whole-body controllers:
+
+- **Center of Mass (CoM) control**: Maintaining balance by controlling the CoM position
+- **Zero Moment Point (ZMP) planning**: Ensuring dynamic stability during locomotion
+- **Task-space control**: Coordinating multiple tasks simultaneously (e.g., walking while manipulating objects)
+
+### Locomotion Pattern Generation
+
+Simulation enables development of complex locomotion patterns:
+
+```python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+import numpy as np
+
+class HumanoidWalkGenerator(Node):
+    def __init__(self):
+        super().__init__('humanoid_walk_generator')
+
+        # Walking parameters
+        self.step_length = 0.3  # meters
+        self.step_height = 0.05  # meters
+        self.step_duration = 1.0  # seconds
+        self.step_frequency = 1.0 / self.step_duration
+
+        # Current phase of walking cycle
+        self.phase = 0.0
+
+        self.get_logger().info('Humanoid Walk Generator initialized')
+
+    def generate_step_trajectory(self, time):
+        """Generate foot trajectory for a single step"""
+        # Normalize time to [0, 1] for current step
+        normalized_time = (time % self.step_duration) / self.step_duration
+
+        # Horizontal movement (cubic interpolation for smooth motion)
+        x = self.step_length * normalized_time
+
+        # Vertical movement (sinusoidal for liftoff and touchdown)
+        y = self.step_height * np.sin(np.pi * normalized_time)
+
+        return x, y
+
+def main(args=None):
+    rclpy.init(args=args)
+    walker = HumanoidWalkGenerator()
+
+    # Example usage in simulation
+    for t in np.arange(0, 10, 0.1):
+        x, y = walker.generate_step_trajectory(t)
+        walker.get_logger().info(f'Time: {t:.1f}s, Foot position: ({x:.2f}, {y:.2f})')
+
+    walker.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+### Sensor Fusion in Simulation
+
+Humanoid robots use multiple sensors that must be simulated accurately:
+
+- **IMU simulation**: Accelerometer and gyroscope data with realistic noise models
+- **Force/torque sensors**: Joint and foot force sensing for balance control
+- **Vision systems**: Camera feeds for perception tasks
+- **Haptic feedback**: Simulation of touch and contact sensing
+
+## Common Pitfalls & Debugging
+
+When working with robotics simulation, several common issues can arise:
+
+### Physics Instability
+
+Simulation physics can become unstable:
+- **Solution**: Reduce simulation time step
+- **Solution**: Adjust solver parameters (damping, stiffness)
+- **Solution**: Simplify collision geometry
+
+### Coordinate Frame Issues
+
+Misaligned coordinate frames cause problems:
+- **Solution**: Use tf2 for proper frame transformations
+- **Solution**: Verify URDF joint definitions
+- **Solution**: Visualize frames in RViz
+
+### Performance Problems
+
+Simulations can be computationally expensive:
+- **Solution**: Reduce rendering quality during development
+- **Solution**: Use simplified models for initial testing
+- **Solution**: Optimize control loop frequencies
+
+### Model Accuracy
+
+Simulated robots may not match real-world behavior:
+- **Solution**: Perform system identification on real hardware
+- **Solution**: Use domain randomization to account for model uncertainty
+- **Solution**: Validate simulation results with physical experiments
+
+## Exercises
+
+1. **Simulation Setup**:
+   - Install ROS 2 Humble and Gazebo Garden
+   - Create a simple robot model in URDF format
+   - Launch the robot in Gazebo and verify it appears correctly
+
+2. **Control Implementation**:
+   - Implement a simple PID controller for a simulated joint
+   - Test the controller with different parameters
+   - Analyze the effect of different gains on system response
+
+3. **Isaac Sim Exploration**:
+   - Install Isaac Sim following NVIDIA's documentation
+   - Load a sample robot (e.g., Franka Emika)
+   - Implement a simple manipulation task in simulation
+
+4. **Physics Comparison**:
+   - Create the same robot model in both Gazebo and Isaac Sim
+   - Compare the physics simulation results
+   - Document differences in behavior and performance
+
+## Further Reading & References
+
+1. **Quigley, M., et al. (2009)**. "ROS: an open-source Robot Operating System." *ICRA Workshop on Open Source Software*.
+
+2. **Koenig, N., & Howard, A. (2004)**. "Design and use paradigms for Gazebo, an open-source multi-robot simulator." *IEEE/RSJ IROS*.
+
+3. **Isaac Sim Documentation**: https://docs.omniverse.nvidia.com/isaacsim/latest/
+   - NVIDIA's comprehensive guide to Isaac Sim
+
+4. **ROS 2 Control Documentation**: https://control.ros.org/
+   - Framework for robot control in ROS 2
+
+5. **Khatib, O. (1987)**. "A unified approach for motion and force control of robot manipulators: The operational space formulation." *IEEE Journal on Robotics and Automation*.
+
+6. **Tedrake, R. (2024)**. "Underactuated Robotics: Algorithms for Walking, Running, Swimming, Flying, and Manipulation." *MIT Press*.
+
+7. **ROS 2 Navigation2 Documentation**: https://navigation.ros.org/
+   - Robot navigation framework for ROS 2
+
+---
+
+**Note**: This chapter builds on the Physical AI concepts from Chapter 1 and introduces practical simulation tools. The next chapter will focus on control algorithms and their implementation (per SC-011 Weekly Breakdown compliance).

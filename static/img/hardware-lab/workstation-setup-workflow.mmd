@@ -1,0 +1,21 @@
+flowchart TD
+    Start[Start: RTX Workstation Setup] --> Hardware[Assemble Hardware]
+    Hardware --> |GPU, RAM, Storage| OS[Install Ubuntu 22.04 LTS]
+    OS --> Drivers[Install NVIDIA Drivers]
+    Drivers --> |nvidia-driver-535+| CUDA[Install CUDA Toolkit 12.x]
+    CUDA --> Docker[Install Docker + NVIDIA Container Toolkit]
+    Docker --> ROS[Install ROS 2 Humble]
+    ROS --> Python[Set Up Python 3.10+ Environment]
+    Python --> Isaac[Install Isaac Sim Optional]
+    Isaac --> Unity[Install Unity 2022.x LTS Optional]
+    Unity --> Gazebo[Install Gazebo Harmonic]
+    Gazebo --> VSCode[Install VS Code + Extensions]
+    VSCode --> Git[Configure Git & Clone Repos]
+    Git --> Test[Run Validation Tests]
+    Test --> |All Pass| Complete[✅ Setup Complete]
+    Test --> |Failures| Debug[Debug Issues]
+    Debug --> Test
+
+    style Start fill:#e1f5ff
+    style Complete fill:#d4edda
+    style Debug fill:#f8d7da

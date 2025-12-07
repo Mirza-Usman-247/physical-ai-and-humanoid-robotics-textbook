@@ -1,0 +1,27 @@
+sequenceDiagram
+    participant App as Application
+    participant Buffer as TF2 Buffer
+    participant Broadcaster as TransformBroadcaster
+
+    Broadcaster->>Buffer: Publish transform<br/>odom → base_link<br/>(timestamp: t)
+
+    Broadcaster->>Buffer: Publish transform<br/>base_link → camera_link<br/>(timestamp: t)
+
+    Note over Buffer: TF2 Buffer maintains<br/>transform history
+
+    App->>Buffer: lookup_transform('odom', 'camera_link', time)
+    Note over Buffer: Search transform graph<br/>for connection path
+
+    Buffer->>Buffer: Find path:<br/>odom → base_link → camera_link
+
+    Buffer->>Buffer: Interpolate transforms<br/>at requested time
+
+    Buffer-->>App: Return combined transform<br/>(odom → camera_link)
+
+    rect rgb(200, 255, 200)
+    Note over App: Use transformed data<br/>for sensor fusion,<br/>navigation, or control
+    end
+
+    rect rgb(240, 255, 240)
+    Note over Buffer: Key characteristics:<br/>- Automatic path resolution<br/>- Temporal interpolation<br/>- Exception handling for<br/>  missing/stale transforms
+    end

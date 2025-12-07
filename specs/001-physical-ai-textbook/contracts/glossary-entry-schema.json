@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://physical-ai-textbook.dev/schemas/glossary-entry.json",
+  "title": "Glossary Entry Schema",
+  "description": "Validates glossary term definitions for FlexSearch indexing",
+  "type": "object",
+  "required": [
+    "term",
+    "definition",
+    "chapters"
+  ],
+  "properties": {
+    "term": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 50,
+      "description": "Canonical term (unique identifier)"
+    },
+    "definition": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 500,
+      "description": "Clear, concise definition of the term"
+    },
+    "relatedTerms": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 2,
+        "maxLength": 50,
+        "description": "Reference to another glossary term"
+      },
+      "uniqueItems": true,
+      "description": "Associated concepts (must exist in glossary)"
+    },
+    "chapters": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(module-[0-4]|capstone)/chapter-[1-5]$",
+        "description": "Chapter path where term is used"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Chapters referencing this term"
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 50,
+        "description": "Synonym or acronym"
+      },
+      "uniqueItems": true,
+      "description": "Alternative names for the term"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "robotics",
+        "ai",
+        "mathematics",
+        "physics",
+        "control-theory",
+        "computer-vision",
+        "nlp",
+        "hardware",
+        "software",
+        "simulation"
+      ],
+      "description": "Term classification for organization"
+    },
+    "latex": {
+      "type": "string",
+      "description": "LaTeX representation if mathematical symbol (e.g., '\\\\theta' for theta)"
+    }
+  },
+  "additionalProperties": false
+}

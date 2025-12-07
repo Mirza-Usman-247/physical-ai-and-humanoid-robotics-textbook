@@ -1,0 +1,51 @@
+---
+title: "Perception Pipelines in Isaac Sim"
+description: "Multi-sensor simulation, synthetic data generation, and sensor fusion"
+sidebar_position: 2
+keywords: [perception, cameras, lidar, synthetic-data, replicator, sensor-fusion]
+---
+
+# Perception Pipelines in Isaac Sim
+
+## Learning Objectives
+
+1. Configure RGB-D cameras with realistic lens models and noise
+2. Implement LiDAR simulation with ray tracing
+3. Generate synthetic datasets with automatic annotations
+4. Build sensor fusion pipelines combining vision and range data
+5. Use Replicator for domain randomization in visual data
+
+## Core Concepts
+
+### Isaac Sim Sensor Suite
+- **Cameras**: RGB, Depth, Semantic Segmentation, Instance Segmentation, Normals, Optical Flow
+- **LiDAR**: Rotating and solid-state, configurable range/resolution
+- **Contact Sensors**: Force/torque, tactile sensors
+- **IMU**: Accelerometer, gyroscope with noise models
+
+### Replicator Workflow
+```python
+import omni.replicator.core as rep
+
+# Create camera
+camera = rep.create.camera()
+
+# Randomize lighting
+with rep.trigger.on_frame():
+    rep.randomizer.light(intensity=(800, 1200))
+    rep.randomizer.color(texture_path="/Materials")
+
+# Capture and annotate
+rp = rep.BasicWriter(output_dir="output", rgb=True, semantic_segmentation=True)
+```
+
+## Application
+- Train vision models with infinite labeled data
+- Test perception systems in edge cases (night, fog, occlusion)
+- Benchmark sensor fusion algorithms
+
+See `examples/module-3-isaac/chapter-2/` for camera setup and Replicator scripts.
+
+## References
+- [Isaac Sim Sensors](https://docs.omniverse.nvidia.com/isaacsim/latest/features/sensors_simulation/index.html)
+- [Replicator Documentation](https://docs.omniverse.nvidia.com/extensions/latest/ext_replicator.html)

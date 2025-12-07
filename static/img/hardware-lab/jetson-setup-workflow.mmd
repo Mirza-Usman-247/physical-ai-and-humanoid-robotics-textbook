@@ -1,0 +1,21 @@
+flowchart TD
+    Start[Start: Jetson Orin Nano Setup] --> Flash[Flash JetPack 5.1+ to microSD]
+    Flash --> |balenaEtcher or SD Card Formatter| Boot[First Boot & Initial Config]
+    Boot --> |HDMI, keyboard, mouse| Network[Connect to Network]
+    Network --> Updates[Run System Updates]
+    Updates --> |sudo apt update && upgrade| ROS[Install ROS 2 Humble]
+    ROS --> |From apt packages| Realsense[Install RealSense SDK]
+    Realsense --> |librealsense2| Python[Set Up Python 3.10]
+    Python --> Torch[Install PyTorch for Jetson]
+    Torch --> |JetPack compatible version| TensorRT[Install TensorRT]
+    TensorRT --> Isaac[Install Isaac ROS Packages Optional]
+    Isaac --> VSCode[Install VS Code Remote]
+    VSCode --> Git[Configure Git & SSH]
+    Git --> Test[Run Camera & ROS Tests]
+    Test --> |Camera detected, ROS works| Deploy[✅ Ready for Deployment]
+    Test --> |Issues| Debug[Troubleshoot]
+    Debug --> |Check logs, drivers| Test
+
+    style Start fill:#e1f5ff
+    style Deploy fill:#d4edda
+    style Debug fill:#f8d7da

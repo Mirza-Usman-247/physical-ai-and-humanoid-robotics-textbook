@@ -1,0 +1,61 @@
+sequenceDiagram
+    participant Pub as Publisher Node
+    participant DW as DDS DataWriter
+    participant Net as Network/SHM
+    participant DR as DDS DataReader
+    participant Sub as Subscriber Node
+
+    Note over Pub,Sub: Message Publication Flow (Reliable QoS)
+
+    Pub->>Pub: timer_callback() triggered
+    Pub->>Pub: Create String message
+    Pub->>Pub: msg.data = "Hello"
+
+    Pub->>DW: publish(msg)
+    DW->>DW: Serialize message to CDR
+    DW->>DW: Add sequence number (SN=42)
+    DW->>DW: Store in history cache (depth=10)
+
+    alt Local Communication (Same Host)
+        DW->>Net: Write to shared memory (/dev/shm)
+        Net->>DR: Zero-copy read
+    else Remote Communication
+        DW->>Net: Send via UDP/TCP
+        Net->>DR: Receive and buffer
+    end
+
+    DR->>DR: Deserialize from CDR
+    DR->>DR: Check QoS constraints
+    DR->>DR: Add to subscriber queue
+
+    alt Subscriber Executor Ready
+        DR->>Sub: Trigger callback
+        Sub->>Sub: listener_callback(msg)
+        Sub->>Sub: Process: log msg.data
+        Sub->>DR: Send ACK (SN=42)
+        DR->>DW: Deliver ACK via RTPS protocol
+        DW->>DW: Mark SN=42 as acknowledged
+    else Subscriber Busy
+        DR->>DR: Buffer in queue (up to depth)
+        Note over DR: Callback deferred until executor available
+    end
+
+    alt Message Loss Detected (Reliable QoS)
+        DR->>DR: Detect gap: SN=41 received, SN=42 missing
+        DR->>DW: Send NACK request for SN=42
+        DW->>Net: Retransmit SN=42
+        Net->>DR: Receive retransmit
+        DR->>Sub: Deliver SN=42
+    end
+
+    alt History Overflow
+        DW->>DW: New message (SN=53), history full
+        DW->>DW: Evict oldest (SN=43) per KEEP_LAST policy
+        Note over DW: Subscribers joined late miss SN=43
+    end
+
+    Note over Pub,Sub: Cleanup on Node Shutdown
+    Pub->>DW: destroy_publisher()
+    DW->>Net: Send participant goodbye message
+    Net->>DR: Receive goodbye
+    DR->>Sub: Notify connection lost

@@ -1,0 +1,28 @@
+graph TD
+    subgraph "Transform Tree"
+        world["world<br/>(global reference)"]
+        map["map<br/>(localized map)"]
+        odom["odom<br/>(odometry frame)"]
+        base_link["base_link<br/>(robot center)"]
+        lidar["lidar_link"]
+        imu["imu_link"]
+        camera["camera_link"]
+        gripper["gripper_link"]
+    end
+
+    world -->|"map → world<br/>(localization)"| map
+    map -->|"odom → map<br/>(SLAM)"| odom
+    odom -->|"base_link → odom<br/>(odometry/control)"| base_link
+    base_link -->|"lidar_link → base_link<br/>(static: 0.1m forward)"| lidar
+    base_link -->|"imu_link → base_link<br/>(static: center)"| imu
+    base_link -->|"camera_link → base_link<br/>(static: 0.05m up)"| camera
+    base_link -->|"gripper_link → base_link<br/>(dynamic: actuated)"| gripper
+
+    style world fill:#FF6B6B,stroke:#333,stroke-width:2px,color:#fff
+    style map fill:#4ECDC4,stroke:#333,stroke-width:2px,color:#fff
+    style odom fill:#45B7D1,stroke:#333,stroke-width:2px,color:#fff
+    style base_link fill:#FFA07A,stroke:#333,stroke-width:2px,color:#fff
+    style lidar fill:#98D8C8,stroke:#333,stroke-width:2px,color:#fff
+    style imu fill:#98D8C8,stroke:#333,stroke-width:2px,color:#fff
+    style camera fill:#98D8C8,stroke:#333,stroke-width:2px,color:#fff
+    style gripper fill:#F7DC6F,stroke:#333,stroke-width:2px,color:#333

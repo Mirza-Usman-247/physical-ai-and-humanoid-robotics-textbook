@@ -1,0 +1,55 @@
+graph TB
+    subgraph Application["Application Layer"]
+        API["Python/C++ API"]
+        ROS["ROS 2 Bridge"]
+        EXT["Extensions"]
+    end
+
+    subgraph Core["Simulation Core"]
+        PHYS["PhysX 5 GPU"]
+        REP["Replicator"]
+        SENS["Sensors"]
+    end
+
+    subgraph Render["Rendering Engine"]
+        RTX["RTX Ray Tracing"]
+        PATH["Path Tracing"]
+        RAST["Rasterization"]
+    end
+
+    subgraph Platform["Omniverse Platform"]
+        USD["USD Scene Format"]
+        NUC["Nucleus Server"]
+        KIT["Kit SDK"]
+    end
+
+    subgraph Hardware["Hardware Layer"]
+        CUDA["CUDA Cores"]
+        TENSOR["Tensor Cores"]
+        RT["RT Cores"]
+    end
+
+    API --> PHYS
+    API --> REP
+    ROS --> API
+    EXT --> API
+
+    PHYS --> USD
+    REP --> SENS
+    SENS --> RTX
+
+    RTX --> CUDA
+    PATH --> RT
+    RAST --> CUDA
+
+    USD --> NUC
+    KIT --> USD
+
+    PHYS --> CUDA
+    REP --> TENSOR
+
+    style Application fill:#e1f5ff
+    style Core fill:#fff4e1
+    style Render fill:#f0e1ff
+    style Platform fill:#e1ffe1
+    style Hardware fill:#ffe1e1

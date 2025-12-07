@@ -1,0 +1,72 @@
+---
+title: "Publisher-Subscriber Pattern in ROS 2"
+description: "Master topic-based communication, message types, QoS profiles, and custom messages for robot sensor streaming"
+sidebar_position: 2
+keywords: [ros2, publisher, subscriber, topics, messages, qos, sensor-streaming]
+---
+
+# Publisher-Subscriber Pattern in ROS 2
+
+## Learning Objectives
+
+1. **Implement** publisher and subscriber nodes for sensor data streaming
+2. **Configure** QoS profiles for different communication requirements
+3. **Create** custom ROS 2 message types for domain-specific data
+4. **Analyze** topic throughput and latency characteristics
+5. **Design** efficient pub/sub architectures for multi-sensor humanoid systems
+
+## Prerequisites
+
+- [Chapter 1: ROS 2 Architecture](/docs/module-1-ros2/chapter-1/ros2-architecture) - Node fundamentals and DDS concepts
+
+## Weekly Mapping
+
+**Week 3 - Thursday**: Publisher-Subscriber fundamentals and basic implementations
+**Week 4 - Tuesday**: Custom messages, QoS tuning, and performance optimization
+
+## Motivating Scenario
+
+*Content to be expanded: Humanoid robot with 10+ sensors (cameras, IMU, force sensors) streaming data at different rates and reliability requirements*
+
+## Core Theory & Mathematics
+
+### Topic Communication Model
+
+*Placeholder for full content covering*:
+- Publish-subscribe architecture
+- Message serialization (CDR format)
+- QoS policy matching rules
+- Bandwidth and latency analysis
+
+## Worked Example
+
+*Placeholder: Creating a camera image publisher and object detection subscriber*
+
+## Hands-On Code
+
+See `examples/module-1-ros2/chapter-2/` for complete examples.
+
+## Application to Humanoid Robots
+
+*Placeholder: Multi-sensor fusion architecture for humanoid perception*
+
+## Common Pitfalls & Debugging
+
+1. **QoS incompatibility** - Publisher RELIABLE vs Subscriber BEST_EFFORT
+2. **Message queue overflow** - Insufficient history depth for burst traffic
+3. **Bandwidth saturation** - Too many high-frequency publishers
+
+## Exercises
+
+1. **Conceptual**: Explain when to use RELIABLE vs BEST_EFFORT QoS
+2. **Computational**: Calculate bandwidth for 1920x1080 RGB image at 30 FPS
+3. **Implementation**: Create IMU publisher and orientation tracker subscriber
+
+## Further Reading
+
+- [ROS 2 Topics Tutorial](https://docs.ros.org/en/humble/Tutorials/Topics/Understanding-ROS2-Topics.html)
+- [Custom Message Interfaces](https://docs.ros.org/en/humble/Tutorials/Custom-ROS2-Interfaces.html)
+
+---
+
+**Note**: Skeleton chapter - full content pending

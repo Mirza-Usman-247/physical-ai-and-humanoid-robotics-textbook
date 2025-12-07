@@ -1,0 +1,710 @@
+---
+sidebar_position: 4
+title: "Chapter 3: Control Algorithms for Physical AI"
+description: "Fundamental control algorithms for robotics and humanoid systems"
+week: 2
+learning_objectives:
+  - Understand PID control and its applications in robotics
+  - Implement basic control algorithms for robot systems
+  - Learn about advanced control methods for humanoid robots
+  - Apply control theory to practical Physical AI problems
+prerequisites:
+  - Chapter 1: Introduction to Physical AI
+  - Chapter 2: Robotics Simulation Fundamentals
+  - Basic calculus and differential equations
+weekly_breakdown:
+  week_2:
+    topics: ["PID Control", "State Space Control", "Adaptive Control", "Humanoid Control Systems"]
+    estimated_time: "3-4 hours"
+    learning_outcomes: ["Implement PID controllers", "Design state feedback systems", "Apply control to humanoid robots"]
+---
+
+# Chapter 3: Control Algorithms for Physical AI
+
+## Learning Objectives
+
+By the end of this chapter, you will be able to:
+- Implement PID controllers for basic robot control tasks
+- Understand state-space representation and feedback control
+- Design adaptive control systems for uncertain environments
+- Apply control theory specifically to humanoid robot systems
+- Analyze stability and performance of control systems
+
+## Prerequisites
+
+Before starting this chapter, you should have:
+- Completed Chapters 1 and 2 of this module
+- Basic understanding of calculus and differential equations
+- Knowledge of linear algebra concepts
+- Experience with Python programming
+- Understanding of ROS 2 basics from Chapter 2
+
+## Weekly Mapping
+
+This chapter is part of **Week 2** of the Physical AI Foundations module. It builds on the simulation concepts from Chapter 2 and introduces practical control algorithms.
+
+| Section | Topic | Estimated Time | Key Takeaways |
+|---------|-------|----------------|---------------|
+| 3.1 | PID Control Basics | 30 minutes | Understanding proportional, integral, derivative terms |
+| 3.2 | State-Space Control | 45 minutes | Mathematical representation of control systems |
+| 3.3 | Adaptive Control | 40 minutes | Control in uncertain environments |
+| 3.4 | Humanoid-Specific Control | 50 minutes | Balance, locomotion, and manipulation control |
+| 3.5 | Implementation Examples | 35 minutes | Practical control implementations |
+
+## Motivating Scenario
+
+Consider a humanoid robot attempting to maintain balance while standing. The robot must continuously adjust its joint positions and torques based on sensor feedback to remain upright. This requires sophisticated control algorithms that can handle the robot's complex dynamics, external disturbances, and real-time constraints. This chapter introduces the control algorithms that make such behaviors possible.
+
+## Core Theory & Mathematics
+
+Control theory provides the mathematical foundation for designing systems that can automatically regulate their behavior. The core concepts include:
+
+### PID Control
+
+Proportional-Integral-Derivative (PID) control is one of the most common control strategies:
+
+**u(t) = Kp·e(t) + Ki·∫e(t)dt + Kd·de(t)/dt**
+
+Where:
+- u(t): Control output at time t
+- e(t): Error signal (desired - actual)
+- Kp: Proportional gain
+- Ki: Integral gain
+- Kd: Derivative gain
+
+### State-Space Representation
+
+Control systems can be represented in state-space form:
+
+**ẋ = Ax + Bu**
+**y = Cx + Du**
+
+Where:
+- x: State vector
+- u: Control input vector
+- y: Output vector
+- A, B, C, D: System matrices
+
+### Transfer Functions
+
+In the Laplace domain, systems can be represented as:
+
+**G(s) = Y(s)/U(s) = C(sI - A)⁻¹B + D**
+
+### Stability Analysis
+
+For linear systems, stability is determined by the eigenvalues of the A matrix. A system is stable if all eigenvalues have negative real parts.
+
+## Worked Example: PID Control for Robot Joint
+
+Let's consider controlling the position of a single robot joint using PID control.
+
+### Mathematical Model
+
+For a simple rotational joint with viscous friction:
+
+**J·θ̈ + b·θ̇ = τ**
+
+Where:
+- J: Moment of inertia
+- b: Viscous friction coefficient
+- θ: Joint angle
+- τ: Applied torque
+
+### PID Controller Design
+
+```python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Float64
+from sensor_msgs.msg import JointState
+import numpy as np
+
+class JointPIDController(Node):
+    def __init__(self):
+        super().__init__('joint_pid_controller')
+
+        # PID gains
+        self.kp = 10.0  # Proportional gain
+        self.ki = 0.5   # Integral gain
+        self.kd = 0.2   # Derivative gain
+
+        # Controller state
+        self.error_integral = 0.0
+        self.previous_error = 0.0
+        self.previous_time = self.get_clock().now().nanoseconds / 1e9
+
+        # Joint parameters
+        self.joint_position = 0.0
+        self.desired_position = 0.0  # Will be set by user
+
+        # Publishers and subscribers
+        self.joint_state_sub = self.create_subscription(
+            JointState, '/joint_states', self.joint_state_callback, 10)
+        self.command_pub = self.create_publisher(
+            Float64, '/joint_torque_command', 10)
+
+        # Timer for control loop
+        self.timer = self.create_timer(0.01, self.control_step)  # 100 Hz
+
+        self.get_logger().info('Joint PID Controller initialized')
+
+    def joint_state_callback(self, msg):
+        """Update current joint position from sensor data"""
+        # Find our joint in the message
+        for i, name in enumerate(msg.name):
+            if name == 'our_joint_name':
+                self.joint_position = msg.position[i]
+                break
+
+    def control_step(self):
+        """Main PID control loop"""
+        current_time = self.get_clock().now().nanoseconds / 1e9
+        dt = current_time - self.previous_time
+
+        if dt <= 0:
+            return
+
+        # Calculate error
+        error = self.desired_position - self.joint_position
+
+        # Update integral term
+        self.error_integral += error * dt
+
+        # Calculate derivative term
+        error_derivative = (error - self.previous_error) / dt
+
+        # Calculate PID output
+        proportional = self.kp * error
+        integral = self.ki * self.error_integral
+        derivative = self.kd * error_derivative
+
+        control_output = proportional + integral + derivative
+
+        # Publish control command
+        command_msg = Float64()
+        command_msg.data = control_output
+        self.command_pub.publish(command_msg)
+
+        # Update previous values
+        self.previous_error = error
+        self.previous_time = current_time
+
+        self.get_logger().info(
+            f'Error: {error:.3f}, Output: {control_output:.3f}, '
+            f'P: {proportional:.3f}, I: {integral:.3f}, D: {derivative:.3f}'
+        )
+
+def main(args=None):
+    rclpy.init(args=args)
+    controller = JointPIDController()
+
+    # Example: Set a desired position
+    controller.desired_position = np.pi / 4  # 45 degrees
+
+    try:
+        rclpy.spin(controller)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        controller.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+### Tuning PID Parameters
+
+The Ziegler-Nichols method provides a systematic approach to PID tuning:
+
+1. Set Ki = 0 and Kd = 0
+2. Increase Kp until the system oscillates with constant amplitude
+3. Record the critical gain (Kc) and oscillation period (Pc)
+4. Set gains using:
+   - Kp = 0.6·Kc
+   - Ki = 2·Kp/Pc
+   - Kd = Kp·Pc/8
+
+## Hands-On Code: Advanced Control Implementation
+
+### State-Feedback Controller
+
+```python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+import numpy as np
+from scipy.linalg import solve_continuous_are
+from sensor_msgs.msg import JointState
+from std_msgs.msg import Float64MultiArray
+
+class StateFeedbackController(Node):
+    def __init__(self):
+        super().__init__('state_feedback_controller')
+
+        # System matrices for a 2-DOF robot arm
+        # State: [θ₁, θ₂, θ̇₁, θ̇₂] (positions and velocities)
+        self.A = np.array([
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+            [0, 0, -1, 0],  # Simplified dynamics
+            [0, 0, 0, -1]
+        ])
+
+        self.B = np.array([
+            [0, 0],
+            [0, 0],
+            [1, 0],
+            [0, 1]
+        ])
+
+        # Weight matrices for LQR
+        self.Q = np.eye(4)  # State cost
+        self.R = 0.1 * np.eye(2)  # Control cost
+
+        # Calculate LQR gain matrix
+        self.K = self.calculate_lqr_gain()
+
+        # Current state
+        self.state = np.zeros(4)
+        self.desired_state = np.array([np.pi/4, -np.pi/6, 0, 0])  # Desired position
+
+        # Publishers and subscribers
+        self.joint_sub = self.create_subscription(
+            JointState, '/joint_states', self.joint_callback, 10)
+        self.command_pub = self.create_publisher(
+            Float64MultiArray, '/joint_commands', 10)
+
+        # Timer for control loop
+        self.timer = self.create_timer(0.02, self.control_loop)
+
+        self.get_logger().info('State Feedback Controller initialized')
+
+    def calculate_lqr_gain(self):
+        """Calculate LQR gain matrix using Riccati equation"""
+        P = solve_continuous_are(self.A, self.B, self.Q, self.R)
+        K = np.linalg.inv(self.R) @ self.B.T @ P
+        return K
+
+    def joint_callback(self, msg):
+        """Update state from joint sensor data"""
+        # Assuming we have 2 joints: joint1, joint2
+        positions = []
+        velocities = []
+
+        for i, name in enumerate(msg.name):
+            if name == 'joint1':
+                positions.append(msg.position[i])
+                velocities.append(msg.velocity[i])
+            elif name == 'joint2':
+                positions.append(msg.position[i])
+                velocities.append(msg.velocity[i])
+
+        if len(positions) == 2 and len(velocities) == 2:
+            self.state = np.array([
+                positions[0], positions[1],
+                velocities[0], velocities[1]
+            ])
+
+    def control_loop(self):
+        """Main control loop"""
+        # Calculate error
+        error = self.desired_state - self.state
+
+        # Calculate control input using state feedback
+        control_input = self.K @ error
+
+        # Publish control commands
+        cmd_msg = Float64MultiArray()
+        cmd_msg.data = control_input.tolist()
+        self.command_pub.publish(cmd_msg)
+
+        self.get_logger().info(f'Control: [{control_input[0]:.3f}, {control_input[1]:.3f}]')
+
+def main(args=None):
+    rclpy.init(args=args)
+    controller = StateFeedbackController()
+
+    try:
+        rclpy.spin(controller)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        controller.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+### Adaptive Control for Uncertain Systems
+
+```python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+import numpy as np
+
+class AdaptiveController(Node):
+    def __init__(self):
+        super().__init__('adaptive_controller')
+
+        # Initial parameter estimates
+        self.estimate_a = 1.0  # Estimated system parameter
+        self.estimate_b = 1.0  # Estimated system parameter
+
+        # Adaptive law parameters
+        self.gamma_a = 0.1  # Learning rate for parameter a
+        self.gamma_b = 0.1  # Learning rate for parameter b
+
+        # PID gains (will be adapted)
+        self.kp = 1.0
+        self.ki = 0.1
+        self.kd = 0.05
+
+        # Controller state
+        self.error_integral = 0.0
+        self.previous_error = 0.0
+        self.previous_time = self.get_clock().now().nanoseconds / 1e9
+
+        # System state
+        self.current_state = 0.0
+        self.desired_state = 1.0
+
+        # Timer for control loop
+        self.timer = self.create_timer(0.01, self.adaptive_control_step)
+
+        self.get_logger().info('Adaptive Controller initialized')
+
+    def adaptive_control_step(self):
+        """Adaptive control with parameter estimation"""
+        current_time = self.get_clock().now().nanoseconds / 1e9
+        dt = current_time - self.previous_time
+
+        if dt <= 0:
+            return
+
+        # Calculate error
+        error = self.desired_state - self.current_state
+
+        # Update integral and derivative terms
+        self.error_integral += error * dt
+        error_derivative = (error - self.previous_error) / dt if dt > 0 else 0
+
+        # PID control with current estimates
+        control_output = (
+            self.kp * error +
+            self.ki * self.error_integral +
+            self.kd * error_derivative
+        )
+
+        # Simulate system response (this would come from real sensor data)
+        # dx/dt = a*x + b*u (simplified system)
+        system_derivative = self.estimate_a * self.current_state + self.estimate_b * control_output
+        self.current_state += system_derivative * dt
+
+        # Adaptive parameter update (gradient descent)
+        # dJ/da = -2 * error * sensitivity_wrt_a
+        # dJ/db = -2 * error * sensitivity_wrt_b
+        sensitivity_a = self.current_state  # ∂f/∂a
+        sensitivity_b = control_output      # ∂f/∂b
+
+        # Update parameter estimates
+        self.estimate_a -= self.gamma_a * error * sensitivity_a
+        self.estimate_b -= self.gamma_b * error * sensitivity_b
+
+        # Update previous values
+        self.previous_error = error
+        self.previous_time = current_time
+
+        self.get_logger().info(
+            f'Error: {error:.3f}, Output: {control_output:.3f}, '
+            f'Est_a: {self.estimate_a:.3f}, Est_b: {self.estimate_b:.3f}'
+        )
+
+def main(args=None):
+    rclpy.init(args=args)
+    controller = AdaptiveController()
+
+    try:
+        rclpy.spin(controller)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        controller.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+## Application to Humanoid Robots
+
+Humanoid robots require sophisticated control algorithms due to their complex dynamics and multiple degrees of freedom. Key applications include:
+
+### Balance Control
+
+Humanoid robots must maintain balance during static and dynamic activities:
+
+```python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+import numpy as np
+
+class BalanceController(Node):
+    def __init__(self):
+        super().__init__('balance_controller')
+
+        # Zero Moment Point (ZMP) parameters
+        self.zmp_reference = np.array([0.0, 0.0])  # Desired ZMP position
+        self.com_height = 0.8  # Center of mass height (meters)
+        self.gravity = 9.81
+
+        # Capture Point parameters
+        self.capture_point = np.array([0.0, 0.0])
+        self.com_position = np.array([0.0, 0.0, self.com_height])
+        self.com_velocity = np.array([0.0, 0.0, 0.0])
+
+        # Walking parameters
+        self.step_width = 0.2  # Lateral distance between feet (meters)
+        self.support_foot = "left"  # Current support foot
+
+        # Timer for balance control
+        self.timer = self.create_timer(0.01, self.balance_control_step)
+
+        self.get_logger().info('Balance Controller initialized')
+
+    def calculate_zmp(self, forces, moments):
+        """Calculate Zero Moment Point from ground reaction forces"""
+        # ZMP = (M_y/F_z, -M_x/F_z) where forces = [F_x, F_y, F_z]
+        # and moments = [M_x, M_y, M_z]
+        if forces[2] > 0:  # Check for non-zero normal force
+            zmp_x = self.com_position[0] - moments[1] / forces[2]
+            zmp_y = self.com_position[1] + moments[0] / forces[2]
+            return np.array([zmp_x, zmp_y])
+        else:
+            return np.array([0.0, 0.0])
+
+    def calculate_capture_point(self):
+        """Calculate Capture Point for balance recovery"""
+        # Capture Point = CoM position + CoM velocity * sqrt(h/g)
+        omega = np.sqrt(self.gravity / self.com_height)
+        capture_time = 1.0 / omega
+        self.capture_point = self.com_position[:2] + self.com_velocity[:2] * capture_time
+        return self.capture_point
+
+    def balance_control_step(self):
+        """Main balance control loop"""
+        # Update capture point
+        capture_point = self.calculate_capture_point()
+
+        # Simple balance strategy: move CoM toward ZMP
+        zmp_error = self.zmp_reference - self.calculate_zmp([0, 0, 100], [0, 0, 0])
+
+        # Calculate corrective forces based on ZMP error
+        kp_balance = 50.0  # Balance stiffness
+        corrective_force = kp_balance * zmp_error
+
+        self.get_logger().info(
+            f'ZMP Error: [{zmp_error[0]:.3f}, {zmp_error[1]:.3f}], '
+            f'Capture Point: [{capture_point[0]:.3f}, {capture_point[1]:.3f}]'
+        )
+
+def main(args=None):
+    rclpy.init(args=args)
+    controller = BalanceController()
+
+    try:
+        rclpy.spin(controller)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        controller.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+### Walking Pattern Generation
+
+Generating stable walking patterns for humanoid robots:
+
+```python
+#!/usr/bin/env python3
+
+import rclpy
+from rclpy.node import Node
+import numpy as np
+
+class WalkingPatternGenerator(Node):
+    def __init__(self):
+        super().__init__('walking_pattern_generator')
+
+        # Walking parameters
+        self.step_length = 0.3  # Forward step length (meters)
+        self.step_width = 0.2   # Lateral step width (meters)
+        self.step_height = 0.05 # Foot lift height (meters)
+        self.step_duration = 1.0 # Total step time (seconds)
+        self.zmp_margin = 0.05   # Safety margin for ZMP
+
+        # Current walking state
+        self.current_step = 0
+        self.current_phase = 0.0
+        self.left_foot_support = True
+
+        # Timer for pattern generation
+        self.timer = self.create_timer(0.01, self.generate_step_pattern)
+
+        self.get_logger().info('Walking Pattern Generator initialized')
+
+    def generate_foot_trajectory(self, phase, side):
+        """Generate foot trajectory for a single step"""
+        # phase: 0.0 to 1.0 (normalized time in step)
+        # side: 'left' or 'right'
+
+        # Horizontal movement (cubic interpolation for smooth motion)
+        x = self.step_length * phase
+
+        # Lateral adjustment based on step side
+        if side == 'left':
+            y = self.step_width / 2 if self.left_foot_support else -self.step_width / 2
+        else:
+            y = -self.step_width / 2 if self.left_foot_support else self.step_width / 2
+
+        # Vertical movement (sinusoidal for liftoff and touchdown)
+        z = self.step_height * np.sin(np.pi * phase)
+
+        return np.array([x, y, z])
+
+    def generate_step_pattern(self):
+        """Generate walking pattern for current step"""
+        # Update phase (0 to 1 for current step)
+        self.current_phase += 0.01 / self.step_duration
+
+        if self.current_phase > 1.0:
+            self.current_phase = 0.0
+            self.left_foot_support = not self.left_foot_support
+            self.current_step += 1
+
+        # Generate trajectories for both feet
+        left_foot_pos = self.generate_foot_trajectory(
+            self.current_phase if not self.left_foot_support else 1.0 - self.current_phase,
+            'left'
+        )
+
+        right_foot_pos = self.generate_foot_trajectory(
+            1.0 - self.current_phase if self.left_foot_support else self.current_phase,
+            'right'
+        )
+
+        self.get_logger().info(
+            f'Step {self.current_step}, Phase: {self.current_phase:.2f}, '
+            f'Left: [{left_foot_pos[0]:.3f}, {left_foot_pos[1]:.3f}], '
+            f'Right: [{right_foot_pos[0]:.3f}, {right_foot_pos[1]:.3f}]'
+        )
+
+def main(args=None):
+    rclpy.init(args=args)
+    walker = WalkingPatternGenerator()
+
+    try:
+        rclpy.spin(walker)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        walker.destroy_node()
+        rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+
+## Common Pitfalls & Debugging
+
+When implementing control algorithms for Physical AI systems, several common issues can arise:
+
+### Control Instability
+
+Controllers can become unstable due to:
+- **High gain values**: Reduce gains gradually and use systematic tuning methods
+- **Sampling rate issues**: Ensure control loop runs at appropriate frequency
+- **Actuator saturation**: Implement anti-windup mechanisms for integral terms
+- **Sensor noise**: Apply filtering to sensor signals before control
+
+### Model Mismatch
+
+Real systems often differ from mathematical models:
+- **Solution**: Implement adaptive control or robust control techniques
+- **Solution**: Use system identification to improve model accuracy
+- **Solution**: Apply gain scheduling for different operating conditions
+
+### Computational Constraints
+
+Real-time control has strict timing requirements:
+- **Solution**: Optimize control algorithms for computational efficiency
+- **Solution**: Use simplified models for high-frequency control
+- **Solution**: Implement hierarchical control (fast low-level, slow high-level)
+
+### Safety Considerations
+
+Control systems must operate safely:
+- **Solution**: Implement hard limits on control outputs
+- **Solution**: Use safety-rated controllers for critical applications
+- **Solution**: Test extensively in simulation before real-world deployment
+
+## Exercises
+
+1. **PID Tuning Exercise**:
+   - Implement a PID controller for a simulated robot joint
+   - Use the Ziegler-Nichols method to tune the parameters
+   - Compare performance with different tuning approaches
+
+2. **State-Space Design**:
+   - Design a state-feedback controller for a 2-DOF robot arm
+   - Calculate the LQR gains for optimal performance
+   - Simulate the closed-loop system response
+
+3. **Balance Control Simulation**:
+   - Implement a simple balance controller for a bipedal robot
+   - Test the controller with external disturbances
+   - Analyze the stability margins of your control system
+
+4. **Walking Pattern Implementation**:
+   - Implement a complete walking pattern generator for a humanoid robot
+   - Include smooth transitions between steps
+   - Add ZMP-based balance correction to the walking pattern
+
+## Further Reading & References
+
+1. **Ogata, K. (2010)**. "Modern Control Engineering" (5th ed.). Prentice Hall.
+   - Comprehensive textbook on control systems theory
+
+2. **Spong, M.W., Hutchinson, S., & Vidyasagar, M. (2006)**. "Robot Modeling and Control". Wiley.
+   - Robot-specific control theory and applications
+
+3. **Kajita, S. (2019)**. "Humanoid Robotics: A Reference". Springer.
+   - Detailed coverage of humanoid robot control algorithms
+
+4. **ROS 2 Control Documentation**: https://control.ros.org/
+   - Implementation of control systems in ROS 2
+
+5. **Tedrake, R. (2024)**. "Underactuated Robotics: Algorithms for Walking, Running, Swimming, Flying, and Manipulation." MIT Press.
+   - Advanced control for underactuated systems
+
+6. **Pratt, J., & Krupp, B. (2008)**. "Series Elastic Actuators for legged robots." SPIE Proceedings.
+   - Control of compliant actuator systems
+
+7. **Khatib, O. (1987)**. "A unified approach for motion and force control of robot manipulators." IEEE Journal on Robotics and Automation.
+   - Operational space control framework
+
+---
+
+**Note**: This chapter completes Module 0: Physical AI Foundations. You now have the fundamental knowledge of Physical AI concepts, simulation tools, and control algorithms needed for advanced humanoid robotics applications (per SC-011 Weekly Breakdown compliance).

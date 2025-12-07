@@ -1,0 +1,304 @@
+---
+title: "ROS 2 Architecture & Core Concepts"
+description: "Understanding ROS 2 architecture, nodes, graph management, DDS middleware, and QoS policies for Physical AI applications"
+sidebar_position: 1
+keywords: [ros2, architecture, nodes, dds, qos, graph, discovery, humble]
+---
+
+# ROS 2 Architecture & Core Concepts
+
+## Learning Objectives
+
+By the end of this chapter, you will be able to:
+
+1. **Explain** the fundamental architecture of ROS 2 and how it differs from ROS 1
+2. **Describe** the role of DDS (Data Distribution Service) as the middleware layer
+3. **Create** and manage ROS 2 nodes using both Python and C++
+4. **Configure** Quality of Service (QoS) policies for reliable communication
+5. **Visualize** the ROS 2 computation graph using command-line tools and rqt_graph
+6. **Analyze** node discovery mechanisms and network topology considerations
+
+## Prerequisites
+
+**Internal Prerequisites:**
+- [Module 0: Physical AI Foundations](/docs/module-0-foundations/) - Understanding of embodied intelligence and sensorimotor systems
+
+**External Prerequisites:**
+- Basic command-line proficiency (Linux/Ubuntu terminal)
+- Familiarity with object-oriented programming concepts
+- Understanding of client-server architecture patterns
+
+## Weekly Mapping
+
+**Week 3 - Tuesday**: Introduction to ROS 2 architecture, DDS middleware, and node concepts
+**Week 3 - Thursday**: Hands-on node creation, graph visualization, and QoS configuration
+
+## Motivating Scenario
+
+Consider a humanoid robot navigating a crowded environment while simultaneously balancing, processing visual input from cameras, listening for voice commands, and planning manipulation tasks. This requires **dozens of concurrent processes** exchanging sensor data, control commands, and state information in real-time.
+
+**Challenge**: How do we architect software for such complex multi-process robotics systems?
+
+**ROS 2 Solution**: A distributed middleware framework that enables modular, scalable robot software through:
+- **Nodes**: Independent processes handling specific tasks (perception, planning, control)
+- **Topics**: Asynchronous publish-subscribe communication for sensor streams
+- **Services**: Synchronous request-reply for discrete operations
+- **Actions**: Long-running tasks with feedback (e.g., "walk to position X")
+
+This chapter explores the architecture enabling these capabilities.
+
+---
+
+## Core Theory & Mathematics
+
+### 1. ROS 2 Architecture Overview
+
+ROS 2 (Robot Operating System 2) is a **middleware framework** built on DDS (Data Distribution Service) that provides:
+- Process abstraction (nodes)
+- Inter-process communication (topics, services, actions)
+- Hardware abstraction (drivers, interfaces)
+- Package management and build tools
+
+**Key Design Principles**:
+1. **Modularity**: Each node handles one responsibility (perception, planning, control)
+2. **Scalability**: Nodes can run on single machine or distributed across network
+3. **Real-time capable**: Deterministic communication with bounded latency
+4. **Platform-agnostic**: Linux, Windows, macOS, embedded systems
+
+### 2. Node Architecture
+
+A **node** is the fundamental execution unit in ROS 2. Mathematically, we model a node as:
+
+```
+Node N = (P, S, A, T_pub, T_sub)
+```
+
+Where:
+- `P`: Set of parameters (configuration)
+- `S`: Set of provided services
+- `A`: Set of action servers
+- `T_pub`: Set of published topics
+- `T_sub`: Set of subscribed topics
+
+**Example**: A camera node might be defined as:
+```
+Camera_Node = (
+  P = {frame_rate: 30, resolution: 1920x1080},
+  S = {set_exposure},
+  A = {},
+  T_pub = {/camera/image_raw, /camera/camera_info},
+  T_sub = {}
+)
+```
+
+### 3. DDS Middleware Layer
+
+ROS 2 uses **DDS (Data Distribution Service)** - an OMG standard for real-time publish-subscribe communication.
+
+**DDS Discovery Protocol**:
+1. **Simple Discovery**: Multicast-based (default for LANs)
+   - Nodes broadcast presence via UDP multicast
+   - Automatic peer discovery within network segment
+   - Limitation: Doesn't scale well to 100+ nodes
+
+2. **Discovery Server**: Centralized discovery (recommended for large systems)
+   - Nodes connect to discovery server
+   - Reduces network traffic (O(N) vs O(N²) messages)
+   - Better for WiFi/unreliable networks
+
+### 4. Quality of Service (QoS) Policies
+
+QoS policies define **reliability guarantees** for topic communication:
+
+| QoS Policy | Options | Use Case |
+|------------|---------|----------|
+| **Reliability** | Best Effort / Reliable | Sensor streams vs critical commands |
+| **Durability** | Volatile / Transient Local | Real-time vs late-joining subscribers |
+| **History** | Keep Last N / Keep All | Buffer size for message queues |
+| **Deadline** | Duration | Maximum time between messages |
+| **Lifespan** | Duration | Message expiration time |
+
+**Example Configuration**:
+```python
+# High-frequency sensor (Best Effort)
+qos_sensor = QoSProfile(
+    reliability=ReliabilityPolicy.BEST_EFFORT,
+    history=HistoryPolicy.KEEP_LAST,
+    depth=1  # Only latest measurement
+)
+
+# Critical commands (Reliable)
+qos_command = QoSProfile(
+    reliability=ReliabilityPolicy.RELIABLE,
+    history=HistoryPolicy.KEEP_ALL,
+    durability=DurabilityPolicy.TRANSIENT_LOCAL
+)
+```
+
+---
+
+## Worked Example
+
+### Creating a Simple ROS 2 Node
+
+**Goal**: Create a minimal node that publishes "heartbeat" messages.
+
+**Step 1: Python Node Structure**
+```python
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import String
+
+class HeartbeatNode(Node):
+    def __init__(self):
+        super().__init__('heartbeat_node')
+        self.publisher = self.create_publisher(String, 'heartbeat', 10)
+        self.timer = self.create_timer(1.0, self.timer_callback)
+        self.count = 0
+
+    def timer_callback(self):
+        msg = String()
+        msg.data = f'Heartbeat {self.count}'
+        self.publisher.publish(msg)
+        self.get_logger().info(f'Published: {msg.data}')
+        self.count += 1
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = HeartbeatNode()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+```
+
+**Step 2: Run and Visualize**
+```bash
+# Terminal 1: Run node
+ros2 run my_package heartbeat_node
+
+# Terminal 2: List active nodes
+ros2 node list  # Output: /heartbeat_node
+
+# Terminal 3: Inspect node info
+ros2 node info /heartbeat_node
+# Output: Publishers: /heartbeat [std_msgs/msg/String]
+
+# Terminal 4: Echo messages
+ros2 topic echo /heartbeat
+```
+
+---
+
+## Hands-On Code
+
+**File**: `examples/module-1-ros2/chapter-1/simple_node.py`
+
+(See example code in repository)
+
+**Safety Note**: This is simulation code only. No physical robot interaction.
+
+---
+
+## Application to Humanoid Robots
+
+ROS 2 architecture enables humanoid robot control through:
+
+1. **Perception Nodes**: Camera, LiDAR, IMU processing (30-60 Hz)
+2. **Planning Nodes**: Path planning, manipulation planning (1-10 Hz)
+3. **Control Nodes**: Joint control, balance control (100-1000 Hz)
+4. **Coordination Nodes**: Behavior trees, state machines (10 Hz)
+
+**Example Humanoid System**:
+```
+[Camera Node] --/image--> [Object Detection]
+                              |
+                              v
+[Voice Node] ---------------->[VLA Planning Node]
+                              |
+                              v
+                         [Motion Planner]
+                              |
+                              v
+                         [Joint Controller] --> Hardware
+```
+
+---
+
+## Common Pitfalls & Debugging
+
+### Pitfall 1: QoS Mismatch
+**Problem**: Subscriber doesn't receive messages despite publisher running
+**Cause**: Publisher uses `RELIABLE`, subscriber uses `BEST_EFFORT`
+**Fix**: Match QoS policies or use compatible settings
+
+### Pitfall 2: Node Name Collisions
+**Problem**: `Node /my_node already exists` error
+**Cause**: Two nodes with same name on network
+**Fix**: Use unique node names or namespaces: `ros2 run pkg node --ros-args -r __ns:=/robot1`
+
+### Pitfall 3: Discovery Issues
+**Problem**: Nodes on different machines can't see each other
+**Cause**: Firewall blocking UDP multicast (ports 7400-7500)
+**Fix**: Configure firewall or use Discovery Server
+
+**Debugging Checklist**:
+```bash
+# Check active nodes
+ros2 node list
+
+# Inspect topic publishers/subscribers
+ros2 topic list
+ros2 topic info /topic_name
+
+# Visualize graph
+rqt_graph
+
+# Check DDS communication
+ros2 doctor
+```
+
+---
+
+## Exercises
+
+### Exercise 1: Conceptual
+**Question**: Explain why ROS 2 uses DDS instead of custom TCP/UDP communication. What are three advantages of using a standard middleware?
+
+**Expected Answer**: (1) Interoperability with non-ROS DDS systems, (2) Built-in QoS policies for reliability/latency control, (3) Proven real-time performance in industrial systems
+
+### Exercise 2: Computational
+**Question**: Given a camera publishing at 30 FPS with QoS `depth=1` (KEEP_LAST), and a slow subscriber processing at 10 FPS, how many frames are dropped per second? What QoS change would retain all frames?
+
+**Expected Answer**: 20 frames/sec dropped. Change to `KEEP_ALL` history policy (but requires managing memory growth).
+
+### Exercise 3: Implementation
+**Task**: Create two nodes: (1) `sensor_node` publishing random temperature readings at 5 Hz, (2) `monitor_node` subscribing and printing average of last 10 readings.
+
+**Starter Code**: See `exercises/module-1-ros2/chapter-1/`
+
+### Exercise 4: Implementation (Advanced)
+**Task**: Modify the heartbeat node to include a **service** that resets the counter to zero on demand. Test with `ros2 service call`.
+
+---
+
+## Further Reading & References
+
+### Official Documentation
+- [ROS 2 Humble Documentation](https://docs.ros.org/en/humble/) - Complete reference
+- [DDS Specification](https://www.omg.org/spec/DDS/) - OMG Data Distribution Service standard
+- [rclpy API Reference](https://docs.ros2.org/foxy/api/rclpy/) - Python client library
+
+### Academic Papers
+- Maruyama, Y., Kato, S., & Azumi, T. (2016). "Exploring the performance of ROS2." *13th International Conference on Embedded Software (EMSOFT)*. DOI: 10.1145/2968478.2968502
+
+### Books
+- Newbury, R. & Goodrich, M. (2021). *A Concise Introduction to Robot Programming with ROS2*. CRC Press.
+
+### Video Tutorials
+- [ROS 2 Humble Tutorial Series - The Construct](https://www.theconstructsim.com/robotigniteacademy_learnros/ros-courses-library/)
+
+---
+
+**Note**: This is a skeleton chapter. Full content including detailed derivations, additional code examples, and comprehensive exercises will be added in future iterations.
+
+**Next Chapter**: [Publisher-Subscriber Pattern](/docs/module-1-ros2/chapter-2/publisher-subscriber) - Deep dive into topic-based communication

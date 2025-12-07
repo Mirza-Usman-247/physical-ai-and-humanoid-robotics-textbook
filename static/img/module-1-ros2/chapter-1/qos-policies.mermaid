@@ -1,0 +1,63 @@
+graph TD
+    subgraph "QoS Policy Dimensions"
+        R[Reliability<br/>Best Effort vs Reliable]
+        D[Durability<br/>Volatile vs Transient Local]
+        H[History<br/>Keep Last N vs Keep All]
+        DL[Deadline<br/>Max Expected Period]
+        L[Lifespan<br/>Message Validity Duration]
+    end
+
+    subgraph "Sensor Data Pattern"
+        SD["/camera/image_raw"]
+        SD_QOS["Reliability: Best Effort<br/>Durability: Volatile<br/>History: Keep Last 1<br/>Deadline: 100ms<br/>Lifespan: 500ms"]
+        SD_WHY["Why: High-frequency data,<br/>latest frame most important,<br/>tolerate some loss"]
+    end
+
+    subgraph "Command Data Pattern"
+        CMD["/cmd_vel"]
+        CMD_QOS["Reliability: Reliable<br/>Durability: Volatile<br/>History: Keep Last 5<br/>Deadline: 50ms<br/>Lifespan: 1s"]
+        CMD_WHY["Why: Commands must arrive,<br/>recent commands buffered,<br/>cannot tolerate loss"]
+    end
+
+    subgraph "Configuration Pattern"
+        CFG["/robot_description"]
+        CFG_QOS["Reliability: Reliable<br/>Durability: Transient Local<br/>History: Keep Last 1<br/>Deadline: N/A<br/>Lifespan: Infinite"]
+        CFG_WHY["Why: Late-joiners need data,<br/>persistent configuration,<br/>zero tolerance for loss"]
+    end
+
+    R --> SD_QOS
+    D --> SD_QOS
+    H --> SD_QOS
+    DL --> SD_QOS
+    L --> SD_QOS
+
+    R --> CMD_QOS
+    D --> CMD_QOS
+    H --> CMD_QOS
+    DL --> CMD_QOS
+    L --> CMD_QOS
+
+    R --> CFG_QOS
+    D --> CFG_QOS
+    H --> CFG_QOS
+    DL --> CFG_QOS
+    L --> CFG_QOS
+
+    SD --> SD_QOS
+    SD_QOS --> SD_WHY
+
+    CMD --> CMD_QOS
+    CMD_QOS --> CMD_WHY
+
+    CFG --> CFG_QOS
+    CFG_QOS --> CFG_WHY
+
+    classDef policyStyle fill:#4A90E2,stroke:#2E5C8A,stroke-width:2px,color:#fff
+    classDef topicStyle fill:#7ED321,stroke:#5A9B18,stroke-width:2px,color:#fff
+    classDef qosStyle fill:#BD10E0,stroke:#8B0AA8,stroke-width:2px,color:#fff
+    classDef whyStyle fill:#F5A623,stroke:#C27D1A,stroke-width:2px,color:#fff
+
+    class R,D,H,DL,L policyStyle
+    class SD,CMD,CFG topicStyle
+    class SD_QOS,CMD_QOS,CFG_QOS qosStyle
+    class SD_WHY,CMD_WHY,CFG_WHY whyStyle

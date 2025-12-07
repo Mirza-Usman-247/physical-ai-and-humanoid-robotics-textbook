@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant Client as Action Client
+    participant Server as Action Server
+
+    Client->>Server: Send Goal (non-blocking)
+    Note over Client: Goal ID returned
+
+    rect rgb(240, 255, 240)
+    Note over Server: Processing Goal...<br/>(may take time)
+    Server-->>Client: Feedback #1 (optional)
+    Note over Client: Receive Feedback
+    Server-->>Client: Feedback #2 (optional)
+    Note over Client: Receive Feedback
+    end
+
+    Server-->>Client: Result<br/>(Goal completed)
+    Note over Client: Handle Result<br/>(success/failure)
+
+    rect rgb(200, 220, 255)
+    Note over Client,Server: Key Characteristics:<br/>- Asynchronous/non-blocking<br/>- Goal → Feedback → Result<br/>- Supports long-running tasks<br/>- Real-time feedback during execution
+    end

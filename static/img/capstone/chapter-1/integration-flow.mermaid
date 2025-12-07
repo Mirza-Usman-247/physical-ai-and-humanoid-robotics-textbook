@@ -1,0 +1,63 @@
+flowchart LR
+    subgraph INPUT["User Input"]
+        CMD["Natural Language<br/>Command"]
+    end
+
+    subgraph VLA_PROCESS["VLA Processing"]
+        ENCODE["Encode Vision<br/>+ Language"]
+        FUSE["Cross-Modal<br/>Fusion"]
+        DECODE["Decode to<br/>High-Level Actions"]
+    end
+
+    subgraph PLANNING["Planning"]
+        TASK_PLAN["Task<br/>Decomposition"]
+        MOTION_PLAN["Motion<br/>Planning"]
+    end
+
+    subgraph CONTROL["Control"]
+        WB_CTRL["Whole-Body<br/>Control"]
+        JOINT_CMD["Joint<br/>Commands"]
+    end
+
+    subgraph SAFETY["Safety"]
+        CHECK["Safety<br/>Check"]
+        OVERRIDE["Override if<br/>Unsafe"]
+    end
+
+    subgraph EXECUTION["Execution"]
+        ROS2["ROS 2<br/>Middleware"]
+        HARDWARE["Isaac Sim /<br/>Robot Hardware"]
+    end
+
+    subgraph FEEDBACK["Feedback Loop"]
+        SENSORS["Sensors<br/>(Camera, IMU, etc.)"]
+        STATE["State<br/>Estimation"]
+    end
+
+    CMD --> ENCODE
+    ENCODE --> FUSE
+    FUSE --> DECODE
+
+    DECODE --> TASK_PLAN
+    TASK_PLAN --> MOTION_PLAN
+
+    MOTION_PLAN --> WB_CTRL
+    WB_CTRL --> JOINT_CMD
+
+    JOINT_CMD --> CHECK
+    CHECK -->|Safe| ROS2
+    CHECK -->|Unsafe| OVERRIDE
+    OVERRIDE --> JOINT_CMD
+
+    ROS2 --> HARDWARE
+    HARDWARE --> SENSORS
+    SENSORS --> STATE
+    STATE --> ENCODE
+
+    style INPUT fill:#e1f5ff
+    style VLA_PROCESS fill:#fff4e1
+    style PLANNING fill:#f0e1ff
+    style CONTROL fill:#e1ffe1
+    style SAFETY fill:#ffe1e1
+    style EXECUTION fill:#ffe1f0
+    style FEEDBACK fill:#f0ffe1

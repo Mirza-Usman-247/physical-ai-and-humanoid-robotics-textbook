@@ -1,0 +1,41 @@
+graph TB
+    subgraph User["Human User"]
+        SPEAK["Natural Language<br/>'Pick up red cup'"]
+    end
+
+    subgraph VLA["Vision-Language-Action Model"]
+        VISION["Vision Encoder<br/>(ResNet/ViT)"]
+        LANG["Language Encoder<br/>(BERT/GPT)"]
+        FUSION["Cross-Modal Fusion"]
+        ACTION["Action Decoder"]
+    end
+
+    subgraph Control["Robot Control"]
+        WB["Whole-Body Controller"]
+        TRAJ["Trajectory Generator"]
+        LOW["Low-Level Controller"]
+    end
+
+    subgraph Robot["Humanoid Robot"]
+        JOINTS["32+ Joint Motors"]
+        SENSORS["Cameras, IMU, Force"]
+        PHYS["Physical Robot"]
+    end
+
+    SPEAK --> LANG
+    VISION --> FUSION
+    LANG --> FUSION
+    FUSION --> ACTION
+
+    ACTION --> WB
+    WB --> TRAJ
+    TRAJ --> LOW
+
+    LOW --> JOINTS
+    JOINTS --> PHYS
+    SENSORS --> VISION
+
+    style User fill:#e1f5ff
+    style VLA fill:#fff4e1
+    style Control fill:#f0e1ff
+    style Robot fill:#e1ffe1

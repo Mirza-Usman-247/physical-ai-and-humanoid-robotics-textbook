@@ -1,0 +1,78 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript type checking
+        run: npm run typecheck
+
+      - name: Lint check
+        run: npm run lint
+
+      - name: Build Docusaurus site
+        run: npm run build
+
+      - name: Validate metadata schemas
+        run: npm run validate-metadata
+
+      - name: Check for broken links
+        run: npm run check-links
+
+      - name: Run Lighthouse CI
+        run: npm run lighthouse
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+  code-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker validator
+        run: docker build -f .docker/code-validator.Dockerfile -t textbook-validator .
+
+      - name: Validate code examples
+        run: |
+          # Run Docker container to validate Python code examples
+          docker run --rm -v $(pwd)/examples:/examples textbook-validator
+
+  image-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Optimize and validate images
+        run: npm run optimize-images

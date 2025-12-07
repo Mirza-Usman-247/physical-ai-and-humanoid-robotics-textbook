@@ -1,0 +1,107 @@
+---
+title: "Advanced AI Integration with Isaac Sim"
+description: "Vision-Language Models, multimodal learning, and embodied AI planning"
+sidebar_position: 5
+keywords: [vla, vision-language, multimodal, embodied-ai, planning, isaac-sim]
+---
+
+# Advanced AI Integration with Isaac Sim
+
+## Learning Objectives
+
+1. Integrate Vision-Language-Action (VLA) models with Isaac Sim
+2. Implement multimodal perception pipelines (vision + language + proprioception)
+3. Design hierarchical planning systems with high-level reasoning
+4. Use foundation models for zero-shot task generalization
+5. Deploy embodied AI agents in simulation for evaluation
+
+## Core Concepts
+
+### Vision-Language-Action (VLA) Models
+
+VLA models map natural language instructions and visual observations directly to robot actions:
+
+```
+Instruction: "Pick up the red cube and place it in the box"
+          ↓
+[Vision Encoder] → [Language Encoder] → [Action Decoder]
+          ↓
+Camera RGB       Text Tokens          Joint Positions
+```
+
+**Key Models**:
+- **RT-2** (Google): Robotics Transformer with vision-language co-training
+- **PaLM-E** (Google): Embodied multimodal language model
+- **OpenVLA** (Stanford): Open-source VLA for manipulation
+
+### Integration with Isaac Sim
+
+```python
+from omni.isaac.core import World
+from transformers import AutoModel, AutoTokenizer
+
+# Load VLA model
+model = AutoModel.from_pretrained("openvla/openvla-7b")
+tokenizer = AutoTokenizer.from_pretrained("openvla/openvla-7b")
+
+# Get observation from Isaac Sim
+world = World()
+camera = world.scene.get_object("camera")
+rgb_image = camera.get_rgba()[:, :, :3]
+
+# Get instruction
+instruction = "Pick up the red block"
+inputs = tokenizer(instruction, return_tensors="pt")
+
+# Predict action
+with torch.no_grad():
+    action = model(pixel_values=rgb_image, input_ids=inputs.input_ids)
+
+# Execute in simulation
+robot.apply_action(action)
+```
+
+### Hierarchical Planning
+
+Combine high-level reasoning (LLM) with low-level control (RL policy):
+
+1. **Task Planner** (LLM): Break instruction into subtasks
+2. **Motion Planner**: Generate collision-free trajectories
+3. **Controller** (RL): Execute low-level actions
+
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+def plan_task(instruction):
+    """Use GPT-4 to decompose task."""
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a robot task planner."},
+            {"role": "user", "content": f"Plan: {instruction}"}
+        ]
+    )
+    return response.choices[0].message.content
+
+# Example
+subtasks = plan_task("Clean the table")
+# Output: ["Pick up each object", "Place in bin", "Wipe surface"]
+```
+
+## Application
+
+- **Natural Language Control**: Command robots with free-form instructions
+- **Zero-Shot Generalization**: Handle novel objects and tasks without retraining
+- **Sim-to-Real**: Train VLA policies in Isaac Sim, deploy to physical robots
+- **Embodied Reasoning**: Use world models for counterfactual planning
+
+See `examples/module-3-isaac/chapter-5/` for VLA integration examples.
+
+## References
+
+- [RT-2: Vision-Language-Action Models](https://arxiv.org/abs/2307.15818)
+- [PaLM-E: Embodied Multimodal Language Model](https://arxiv.org/abs/2303.03378)
+- [OpenVLA: Open-Source VLA](https://openvla.github.io/)
+- [Isaac Sim ML Integration](https://docs.omniverse.nvidia.com/isaacsim/latest/ml_integration/index.html)

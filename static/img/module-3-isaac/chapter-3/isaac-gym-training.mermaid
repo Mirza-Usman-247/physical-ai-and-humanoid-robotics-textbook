@@ -1,0 +1,56 @@
+flowchart TB
+    subgraph Init["Initialization"]
+        CREATE["Create 4096 Envs"]
+        POLICY["Initialize Policy Network"]
+        BUFFER["Allocate GPU Buffers"]
+    end
+
+    subgraph Step["Simulation Step (GPU)"]
+        OBS["Collect Observations<br/>(4096 × obs_dim)"]
+        FORWARD["Policy Forward Pass<br/>(Batched)"]
+        ACTION["Apply Actions<br/>(Parallel Physics)"]
+        REWARD["Compute Rewards<br/>(Vectorized)"]
+    end
+
+    subgraph Learn["PPO Update"]
+        ADVANTAGE["Calculate Advantages"]
+        ACTOR["Update Actor Loss"]
+        CRITIC["Update Critic Loss"]
+        GRAD["Gradient Descent"]
+    end
+
+    subgraph Eval["Evaluation"]
+        METRIC["Track Mean Reward"]
+        CONVERGE["Check Convergence"]
+        DEPLOY["Deploy Policy"]
+    end
+
+    Init --> Step
+    Step --> Learn
+    Learn --> Step
+    Step --> Eval
+
+    CREATE --> OBS
+    POLICY --> FORWARD
+    BUFFER --> ACTION
+
+    OBS --> FORWARD
+    FORWARD --> ACTION
+    ACTION --> REWARD
+
+    REWARD --> ADVANTAGE
+    ADVANTAGE --> ACTOR
+    ADVANTAGE --> CRITIC
+    ACTOR --> GRAD
+    CRITIC --> GRAD
+
+    GRAD --> FORWARD
+
+    METRIC --> CONVERGE
+    CONVERGE -->|Not Done| Step
+    CONVERGE -->|Done| DEPLOY
+
+    style Init fill:#e1f5ff
+    style Step fill:#fff4e1
+    style Learn fill:#f0e1ff
+    style Eval fill:#e1ffe1

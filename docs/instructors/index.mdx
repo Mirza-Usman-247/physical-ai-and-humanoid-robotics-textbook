@@ -1,0 +1,152 @@
+---
+title: Instructor Resources
+sidebar_position: 7
+---
+
+# Instructor Resources
+
+## Course Syllabus Template
+
+This textbook is designed for a 13-week university course in Physical AI and Humanoid Robotics. The following syllabus template provides a structured approach to implementing the course with clear learning objectives, assessment strategies, and lab session plans.
+
+### 13-Week Course Structure
+
+| Week | Module | Topics | Learning Objectives | Lab Session | Assessment |
+|------|--------|--------|-------------------|-------------|------------|
+| 1-2 | Module 0: Physical AI Foundations | Introduction to Physical AI, Embodied Intelligence, Sensorimotor Foundations | Understand Physical AI concepts, implement simple embodied systems | Setup environment, run "Hello Physical AI" examples | Quiz 1: Physical AI concepts |
+| 3-5 | Module 1: ROS 2 for Physical AI | ROS 2 Architecture, Pub/Sub, Services/Actions, TF Transforms, Robot Control | Implement distributed robotics systems | ROS 2 workspace setup, pub/sub exercises | Project 1: Custom ROS 2 nodes |
+| 6-7 | Module 2: Digital Twin | Simulation Principles, Gazebo, Unity Integration, Physics Accuracy | Create accurate simulation environments | Gazebo/Unity environment creation | Quiz 2: Simulation concepts |
+| 8-10 | Module 3: NVIDIA Isaac | Isaac Sim Overview, Perception Pipelines, RL, Sim-to-Real | Implement perception and RL in Isaac Sim | Isaac Sim setup, RL training | Project 2: Isaac Sim environment |
+| 11-12 | Module 4: VLA Humanoid Robotics | VLA Models, Action Primitives, Integration & Control | Implement VLA systems for humanoid robots | VLA pipeline implementation | Quiz 3: VLA concepts |
+| 13 | Capstone: Autonomous Humanoid Project | Voice-to-Action Pipeline, System Integration | Integrate all concepts into complete system | Capstone project implementation | Capstone Project Demo |
+
+## Assessment Rubrics
+
+### Module-Level Rubrics
+
+#### Module 0: Physical AI Foundations
+- **Novice**: Can explain Physical AI concepts and run provided examples
+- **Proficient**: Can implement simple embodied systems with sensorimotor loops
+- **Advanced**: Can design complex embodied systems with multiple feedback loops
+
+#### Module 1: ROS 2 for Physical AI
+- **Novice**: Can run existing ROS 2 packages and understand basic concepts
+- **Proficient**: Can implement custom ROS 2 nodes with pub/sub and services
+- **Advanced**: Can architect complex multi-node ROS 2 systems with proper QoS
+
+#### Module 2: Digital Twin
+- **Novice**: Can run existing simulation environments and modify parameters
+- **Proficient**: Can create custom Gazebo/Unity environments with physics models
+- **Advanced**: Can tune simulation parameters for minimal sim-to-real gap
+
+#### Module 3: NVIDIA Isaac
+- **Novice**: Can run Isaac Sim examples and understand perception concepts
+- **Proficient**: Can create custom perception pipelines and simple RL environments
+- **Advanced**: Can implement sim-to-real transfer with domain randomization
+
+#### Module 4: VLA Humanoid Robotics
+- **Novice**: Can explain VLA concepts and run existing models
+- **Proficient**: Can implement basic VLA pipelines for humanoid tasks
+- **Advanced**: Can architect complete VLA systems with safety mechanisms
+
+## Lab Session Plans
+
+### Week 1-2 Lab: Physical AI Foundations
+- **Duration**: 3 hours
+- **Setup**: Python environment with basic robotics libraries
+- **Activities**:
+  - Implement "Hello Physical AI" example
+  - Run perception-action simulation
+  - Solve inverse kinematics problems
+- **Deliverables**: Working simple robot controller
+
+### Week 3-5 Lab: ROS 2 Implementation
+- **Duration**: 3 hours per week
+- **Setup**: ROS 2 Humble installation
+- **Activities**:
+  - Create custom publisher/subscriber nodes
+  - Implement services and actions
+  - Work with TF transforms
+- **Deliverables**: Multi-node ROS 2 system
+
+### Week 6-7 Lab: Digital Twin Creation
+- **Duration**: 3 hours per week
+- **Setup**: Gazebo and Unity environments
+- **Activities**:
+  - Create custom robot model in Gazebo
+  - Implement Unity-ROS 2 bridge
+  - Validate simulation accuracy
+- **Deliverables**: Custom simulation environment
+
+### Week 8-10 Lab: Isaac Sim Integration
+- **Duration**: 3 hours per week
+- **Setup**: NVIDIA Isaac Sim with GPU acceleration
+- **Activities**:
+  - Build perception pipelines
+  - Train RL policies
+  - Implement sim-to-real transfer
+- **Deliverables**: Trained RL agent in Isaac Sim
+
+### Week 11-12 Lab: VLA System Implementation
+- **Duration**: 3 hours per week
+- **Setup**: VLA models and speech processing
+- **Activities**:
+  - Implement VLA pipeline
+  - Create action primitives
+  - Integrate safety mechanisms
+- **Deliverables**: Working VLA system
+
+### Week 13 Lab: Capstone Integration
+- **Duration**: 6 hours
+- **Setup**: Complete integrated environment
+- **Activities**:
+  - Integrate all components
+  - Debug integration issues
+  - Optimize performance
+- **Deliverables**: Complete autonomous humanoid system
+
+## Prerequisite Chains
+
+The course follows a clear prerequisite chain:
+
+```
+Module 0 (Physical AI Foundations) →
+Module 1 (ROS 2 for Physical AI) →
+Module 2 (Digital Twin) →
+Module 3 (NVIDIA Isaac) →
+Module 4 (VLA Humanoid Robotics) →
+Capstone (Autonomous Humanoid Project)
+```
+
+Each module builds on the previous one, with Module 0 providing foundational concepts, Module 1 establishing the software framework (ROS 2), Module 2 providing simulation capabilities, Module 3 adding perception and learning, Module 4 integrating advanced AI, and the Capstone bringing everything together.
+
+## Hardware Requirements
+
+### Recommended Student Kit
+- **GPU**: NVIDIA RTX 3060 or equivalent (2GB+ VRAM minimum)
+- **CPU**: Multi-core processor (Intel i5 or AMD equivalent)
+- **RAM**: 16GB+ system memory
+- **Storage**: 50GB+ available space
+
+### Cloud Alternative
+- **AWS**: g5.xlarge instance (1 GPU, 4 vCPUs, 16GB RAM)
+- **Azure**: NC6s_v3 (1 GPU, 6 vCPUs, 112GB RAM)
+- **GCP**: A2 instance (1 GPU, 4 vCPUs, 16GB RAM)
+
+### Important Note on Latency
+Controlling real robots from cloud instances incurs 50-200ms latency. For real-time control applications, use local computation rather than cloud robotics.
+
+## Course Evaluation
+
+### Grading Breakdown
+- **Quizzes (3)**: 30% (10% each)
+- **Projects (2)**: 40% (20% each)
+- **Capstone Project**: 30%
+- **Participation**: 5%
+
+### Learning Objective Alignment
+Each assessment aligns with specific learning objectives:
+- Quizzes test conceptual understanding
+- Projects test implementation skills
+- Capstone tests integration capabilities
+- Participation evaluates engagement with complex topics

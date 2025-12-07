@@ -1,0 +1,24 @@
+flowchart TD
+    Start[Start: AWS Cloud Setup] --> Account[Create/Login AWS Account]
+    Account --> Instance[Launch GPU Instance]
+    Instance --> |g5.xlarge or g6.xlarge| AMI[Choose Deep Learning AMI]
+    AMI --> |Ubuntu 22.04 + NVIDIA drivers| Security[Configure Security Group]
+    Security --> |SSH port 22, custom ports| Launch[Launch Instance]
+    Launch --> SSH[SSH into Instance]
+    SSH --> |ssh -i key.pem ubuntu@ip| Updates[Update System]
+    Updates --> Docker[Install Docker + Compose]
+    Docker --> ROS[Install ROS 2 Humble]
+    ROS --> Isaac[Install Isaac Sim Optional]
+    Isaac --> |Requires license| VSCode[Install VS Code Server]
+    VSCode --> Tunnel[Set Up SSH Tunnel Optional]
+    Tunnel --> |For GUI forwarding| Git[Configure Git]
+    Git --> Clone[Clone Repos & Data]
+    Clone --> Test[Run GPU Tests]
+    Test --> |nvidia-smi shows GPU| Snapshot[Create AMI Snapshot]
+    Snapshot --> |Save configured state| Ready[✅ Ready for Development]
+    Test --> |GPU not detected| Debug[Debug NVIDIA Drivers]
+    Debug --> Test
+
+    style Start fill:#e1f5ff
+    style Ready fill:#d4edda
+    style Debug fill:#f8d7da

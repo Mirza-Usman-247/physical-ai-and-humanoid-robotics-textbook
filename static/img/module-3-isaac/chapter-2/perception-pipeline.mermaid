@@ -1,0 +1,55 @@
+flowchart LR
+    subgraph Sensors["Sensor Suite"]
+        RGB["RGB Camera"]
+        DEPTH["Depth Camera"]
+        LIDAR["LiDAR"]
+        IMU["IMU"]
+    end
+
+    subgraph Raw["Raw Data"]
+        IMG["Images (H×W×3)"]
+        DMAP["Depth Maps"]
+        POINTS["Point Clouds"]
+        ACCEL["Acceleration"]
+    end
+
+    subgraph Replicator["Replicator Randomization"]
+        LIGHT["Lighting Variation"]
+        TEX["Texture Randomization"]
+        NOISE["Sensor Noise"]
+    end
+
+    subgraph Processing["Perception Processing"]
+        FUSION["Sensor Fusion"]
+        SEGMENT["Segmentation"]
+        DETECT["Object Detection"]
+    end
+
+    subgraph Output["Annotated Output"]
+        BBOX["Bounding Boxes"]
+        MASKS["Semantic Masks"]
+        POSE["6D Poses"]
+    end
+
+    RGB --> IMG
+    DEPTH --> DMAP
+    LIDAR --> POINTS
+    IMU --> ACCEL
+
+    IMG --> Replicator
+    DMAP --> Replicator
+    POINTS --> Replicator
+
+    Replicator --> Processing
+
+    FUSION --> Output
+    SEGMENT --> MASKS
+    DETECT --> BBOX
+
+    Processing --> Output
+
+    style Sensors fill:#e1f5ff
+    style Raw fill:#fff4e1
+    style Replicator fill:#ffe1e1
+    style Processing fill:#f0e1ff
+    style Output fill:#e1ffe1

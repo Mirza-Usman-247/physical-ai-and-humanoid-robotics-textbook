@@ -1,0 +1,87 @@
+graph TB
+    subgraph INTERFACE["Human Interface"]
+        VOICE["Voice Commands"]
+        GUI["Graphical Interface"]
+        API["REST/ROS 2 API"]
+    end
+
+    subgraph PERCEPTION["Perception System"]
+        CAM["RGB-D Cameras"]
+        LIDAR["LiDAR"]
+        AUDIO["Microphones"]
+        FUSION["Sensor Fusion"]
+    end
+
+    subgraph VLA["VLA Core"]
+        VISION["Vision Encoder"]
+        LANG["Language Model"]
+        FUSE["Cross-Modal Fusion"]
+        ACTION["Action Decoder"]
+    end
+
+    subgraph PLANNING["Planning Layer"]
+        TASK["Task Planning"]
+        MOTION["Motion Planning"]
+        NAV["Navigation"]
+    end
+
+    subgraph CONTROL["Control Layer"]
+        WB["Whole-Body Control"]
+        TRAJ["Trajectory Execution"]
+        LOW["Low-Level Control"]
+    end
+
+    subgraph SAFETY["Safety Systems"]
+        MONITOR["Status Monitoring"]
+        EMERGENCY["Emergency Stop"]
+        LIMITS["Constraint Checking"]
+    end
+
+    subgraph ROBOT["Humanoid Robot"]
+        HW["Hardware"]
+        SENSORS["Feedback Sensors"]
+    end
+
+    VOICE --> VLA
+    GUI --> VLA
+    API --> VLA
+
+    CAM --> PERCEPTION
+    LIDAR --> PERCEPTION
+    AUDIO --> PERCEPTION
+
+    PERCEPTION --> VISION
+    PERCEPTION --> FUSE
+
+    VISION --> FUSE
+    LANG --> FUSE
+    FUSE --> ACTION
+
+    ACTION --> TASK
+    TASK --> MOTION
+    MOTION --> NAV
+
+    NAV --> WB
+    TASK --> WB
+    MOTION --> WB
+
+    WB --> TRAJ
+    TRAJ --> LOW
+
+    WB --> SAFETY
+    TRAJ --> SAFETY
+    LOW --> SAFETY
+
+    LOW --> HW
+    SENSORS --> PERCEPTION
+    SENSORS --> SAFETY
+
+    HW --> ROBOT
+
+    style INTERFACE fill:#e1f5ff
+    style PERCEPTION fill:#fff4e1
+    style VLA fill:#f0e1ff
+    style PLANNING fill:#e1ffe1
+    style CONTROL fill:#ffe1f0
+    style SAFETY fill:#ffe1e1
+    style ROBOT fill:#e6f3ff

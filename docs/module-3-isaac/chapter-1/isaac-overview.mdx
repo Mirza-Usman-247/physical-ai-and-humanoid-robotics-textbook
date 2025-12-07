@@ -1,0 +1,155 @@
+---
+title: "Isaac Sim Overview - GPU-Accelerated Robotics"
+description: "NVIDIA Isaac Sim architecture, USD workflows, Omniverse platform, and PhysX 5 physics"
+sidebar_position: 1
+keywords: [isaac-sim, usd, omniverse, physx, extensions, gpu-acceleration]
+---
+
+# Isaac Sim Overview
+
+## Learning Objectives
+
+1. **Understand** Isaac Sim architecture and its advantages over traditional simulators
+2. **Navigate** USD (Universal Scene Description) format for scene creation
+3. **Configure** Omniverse platform for collaborative robotics development
+4. **Implement** Isaac Sim extensions for custom functionality
+5. **Optimize** PhysX 5 settings for accurate and fast simulation
+
+## Prerequisites
+
+- Module 2: Digital Twin & Simulation (Gazebo, Unity basics)
+- NVIDIA GPU with RTX support (RTX 3060 or better)
+- 32GB+ RAM, 50GB+ disk space
+- Basic Python programming
+
+## Weekly Time Map
+
+- **Week 8, Days 1-2**: This chapter (Isaac Sim Overview)
+
+## Motivating Scenario
+
+**The Scale Problem**: Training a quadruped locomotion policy requires 100M simulation steps. In Gazebo (1000 Hz, single environment), this takes **27.8 hours**. Isaac Gym runs 4096 parallel environments on one GPU, completing the same training in **40 minutes** (41x speedup).
+
+**This chapter teaches you**: How Isaac Sim's GPU parallelization, photorealistic rendering, and accurate physics enable breakthrough performance for robotics AI.
+
+## Core Theory
+
+### Isaac Sim Architecture
+
+```
+Application Layer: Python API, ROS 2 Bridge, Extensions
+├─ Simulation Core: PhysX 5 (GPU), Replicator (synthetic data)
+├─ Rendering: RTX Ray Tracing, Path Tracing
+├─ Platform: Omniverse Nucleus (collaboration, USD versioning)
+└─ Hardware: CUDA, Tensor Cores, RT Cores
+```
+
+**Key Components**:
+- **USD (Universal Scene Description)**: Pixar's open format for 3D scenes
+- **Omniverse Nucleus**: Cloud/local server for asset sharing
+- **PhysX 5**: NVIDIA's GPU-accelerated physics engine
+- **Replicator**: Synthetic data generation with randomization
+- **Extensions**: Plugin system for custom tools
+
+### USD Workflow
+
+USD organizes scenes hierarchically:
+
+```python
+from pxr import Usd, UsdGeom
+
+# Create stage (root scene)
+stage = Usd.Stage.CreateNew("my_scene.usd")
+
+# Add robot as reference
+robot_prim = stage.DefinePrim("/World/Robot", "Xform")
+robot_prim.GetReferences().AddReference("robot.usd")
+
+# Add ground plane
+UsdGeom.Mesh.Define(stage, "/World/Ground")
+
+# Save
+stage.Save()
+```
+
+**USD Advantages**:
+- Lazy loading (only load visible assets)
+- Non-destructive edits (layer composition)
+- Collaborative workflows (multiple users, branching)
+
+### PhysX 5 vs Traditional Engines
+
+| Feature | PhysX 5 (Isaac Sim) | ODE (Gazebo) | Bullet |
+|---------|---------------------|--------------|--------|
+| **GPU Acceleration** | Yes (thousands of actors) | No | Limited |
+| **Soft Bodies** | Yes (FEM solver) | No | Basic |
+| **Determinism** | Optional (with settings) | Yes | Varies |
+| **Contact Solver** | TGS (temporal) | PGS | Sequential Impulse |
+| **Parallelization** | Massive (4096+ envs) | None | Multi-thread |
+
+## Hands-on Code
+
+**File**: `examples/module-3-isaac/chapter-1/create_scene.py`
+
+```python
+from isaacsim import SimulationApp
+simulation_app = SimulationApp({"headless": False})
+
+from omni.isaac.core import World
+from omni.isaac.core.objects import DynamicCuboid
+from omni.isaac.core.utils.nucleus import get_assets_root_path
+
+# Create world
+world = World()
+
+# Add ground plane
+world.scene.add_default_ground_plane()
+
+# Add robot from Nucleus
+assets_root = get_assets_root_path()
+robot_usd = assets_root + "/Isaac/Robots/Franka/franka.usd"
+world.scene.add(robot_usd)
+
+# Run simulation
+world.reset()
+while simulation_app.is_running():
+    world.step(render=True)
+
+simulation_app.close()
+```
+
+## Application
+
+**Use Cases**:
+- **RL Training**: 1000+ parallel environments for sample-efficient learning
+- **Synthetic Data**: Photorealistic images with perfect ground-truth labels
+- **Sim-to-Real**: Domain randomization with visual + physics variation
+- **Digital Twin**: Real-time mirror of physical warehouse/factory
+
+## Common Pitfalls
+
+### Pitfall 1: Out of GPU Memory
+**Symptom**: Crash when loading large scenes or many parallel environments.
+**Fix**: Reduce visual fidelity, use level-of-detail (LOD), batch smaller.
+
+### Pitfall 2: Non-Deterministic Physics
+**Symptom**: Same initial conditions give different results.
+**Fix**: Enable deterministic mode in PhysX settings (trades speed for reproducibility).
+
+### Pitfall 3: Slow USD Loading
+**Symptom**: Scene takes minutes to load.
+**Fix**: Use instancers for repeated objects, flatten layer stack, cache Nucleus assets.
+
+## Self-Study Exercises
+
+1. Create USD scene with 100 cube instances using `UsdGeom.PointInstancer`
+2. Compare PhysX TGS vs PGS solver on contact-rich scenario
+3. Benchmark parallel environments: 1 vs 256 vs 2048 on your GPU
+4. Implement custom extension for sensor data logging
+
+## References
+
+- [Isaac Sim Documentation](https://docs.omniverse.nvidia.com/isaacsim/)
+- [USD Documentation](https://graphics.pixar.com/usd/docs/index.html)
+- [PhysX 5 Guide](https://nvidia-omniverse.github.io/PhysX/physx/5.1.0/)
+- [Omniverse Platform](https://www.nvidia.com/en-us/omniverse/)
