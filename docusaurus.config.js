@@ -16,8 +16,8 @@ const config = {
   baseUrl: '/',
 
   // GitHub pages deployment config
-  organizationName: 'your-org', // GitHub org/user name
-  projectName: 'physical-ai-textbook', // Repo name
+  organizationName: 'Mirza-Usman-247', // GitHub org/user name
+  projectName: 'physical-ai-and-humanoid-robotics-textbook', // Repo name
 
   onBrokenLinks: 'warn', // Changed to 'warn' for Phase 0 - will change to 'throw' after all modules created
 
@@ -42,7 +42,7 @@ const config = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           // Edit URL for GitHub
-          editUrl: 'https://github.com/your-org/physical-ai-textbook/tree/main/',
+          editUrl: 'https://github.com/Mirza-Usman-247/physical-ai-and-humanoid-robotics-textbook/tree/main/',
           // Show last update time and author
           showLastUpdateAuthor: true,
           showLastUpdateTime: true,
@@ -98,7 +98,7 @@ const config = {
             label: 'Textbook',
           },
           {
-            href: 'https://github.com/your-org/physical-ai-textbook',
+            href: 'https://github.com/Mirza-Usman-247/physical-ai-and-humanoid-robotics-textbook',
             label: 'GitHub',
             position: 'right',
           },
@@ -172,7 +172,7 @@ const config = {
               },
               {
                 label: 'GitHub',
-                href: 'https://github.com/your-org/physical-ai-textbook',
+                href: 'https://github.com/Mirza-Usman-247/physical-ai-and-humanoid-robotics-textbook',
               },
             ],
           },

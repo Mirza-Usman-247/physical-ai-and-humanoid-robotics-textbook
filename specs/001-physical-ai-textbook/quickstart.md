@@ -36,8 +36,8 @@ This guide provides step-by-step instructions for developers and content authors
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/your-org/humanoid-physical-ai-textbook.git
-cd humanoid-physical-ai-textbook
+git clone https://github.com/Mirza-Usman-247/physical-ai-and-humanoid-robotics-textbook.git
+cd physical-ai-and-humanoid-robotics-textbook
 ```
 
 ### 2. Install Dependencies

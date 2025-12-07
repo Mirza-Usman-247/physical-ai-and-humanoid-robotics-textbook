@@ -29,8 +29,8 @@ This project is a complete educational resource for learning Physical AI and hum
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/physical-ai-textbook.git
-cd physical-ai-textbook
+git clone https://github.com/Mirza-Usman-247/physical-ai-and-humanoid-robotics-textbook.git
+cd physical-ai-and-humanoid-robotics-textbook
 
 # Install dependencies
 npm install

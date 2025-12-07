@@ -1,0 +1,80 @@
+.chapterProgressBadge {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999;
+  background: var(--ifm-background-surface-color);
+  border: 2px solid var(--ifm-color-primary);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.chapterProgressBadge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  border-color: var(--ifm-color-primary-dark);
+}
+
+.badgeContent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.completedCount {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ifm-color-primary);
+  line-height: 1.2;
+}
+
+.overallProgress {
+  font-size: 0.7rem;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.2;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .chapterProgressBadge {
+    bottom: 15px;
+    right: 15px;
+    padding: 10px 12px;
+  }
+
+  .icon {
+    font-size: 1.25rem;
+  }
+
+  .completedCount {
+    font-size: 0.75rem;
+  }
+
+  .overallProgress {
+    font-size: 0.65rem;
+  }
+}
+
+/* Animation on completion milestone */
+@keyframes celebrate {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.chapterProgressBadge[data-milestone="true"] {
+  animation: celebrate 0.5s ease-in-out;
+}
