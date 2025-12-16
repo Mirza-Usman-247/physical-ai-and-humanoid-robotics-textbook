@@ -11,7 +11,7 @@ const config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://mirza-usman-247.github.io', // GitHub Pages URL
+  url: 'https://physical-ai-and-humanoid-robotics-t-psi.vercel.app/', // vercel Pages URL
   // Set the /<baseUrl>/ pathname under which your site is served
   baseUrl: '/physical-ai-and-humanoid-robotics-textbook/', // GitHub Pages path
 
