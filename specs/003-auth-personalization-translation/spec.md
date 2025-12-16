@@ -114,46 +114,51 @@ A logged-in user accesses their profile settings, updates their background infor
 #### User Profile and Background Questionnaire
 
 - **FR-008**: System MUST display a background questionnaire immediately after successful signup
-- **FR-009**: Questionnaire MUST collect software background with checkboxes: Python, Machine Learning, ROS, Linux, Other (text input)
-- **FR-010**: Questionnaire MUST collect hardware access with radio buttons: RTX GPU, Jetson Device, Physical Robot, Cloud Only
-- **FR-011**: System MUST store user background data (software skills, hardware access) in Neon Postgres linked to user account
+- **FR-009**: Questionnaire MUST collect software background with multi-select checkboxes: Python, Machine Learning/Deep Learning, ROS/ROS2, Linux/Ubuntu, C++/C, JavaScript/Web Development, None (Beginner), Other (text input)
+- **FR-010**: Questionnaire MUST collect hardware access with single-select radio buttons (mutually exclusive): RTX GPU, Jetson Device, Physical Robot, Cloud Only
+- **FR-011**: System MUST store user background data in Neon Postgres as: software_skills (JSONB array), hardware_access (ENUM), learning_goal (TEXT, optional)
 - **FR-012**: System MUST allow users to skip questionnaire but show a "Complete Profile" reminder on subsequent visits
 - **FR-013**: System MUST provide a "Profile Settings" page where users can update their background information
 
 #### Content Personalization
 
 - **FR-014**: System MUST display a "Personalize Content" button at the start of each textbook chapter for logged-in users
-- **FR-015**: Button MUST be visible only to authenticated users; anonymous users see standard content
-- **FR-016**: System MUST invoke `personalization-skill` when "Personalize Content" is clicked, passing user profile and chapter content
-- **FR-017**: Personalization MUST adapt explanations based on software background (e.g., Python examples for Python users, C++ for ROS users)
+- **FR-015**: Button MUST be completely hidden (not disabled) for anonymous users
+- **FR-016**: System MUST invoke `personalization-skill` when "Personalize Content" is clicked, passing user profile and full chapter markdown
+- **FR-017**: Personalization MUST rewrite entire chapter once (static transformation, not dynamic overlay) based on software background
 - **FR-018**: Personalization MUST adapt hardware sections based on access (e.g., GPU tutorials for GPU owners, cloud alternatives for cloud-only users)
-- **FR-019**: System MUST display personalized content inline, replacing standard chapter sections
+- **FR-019**: System MUST display personalized content inline, replacing standard chapter content completely
 - **FR-020**: Personalization MUST complete within 10 seconds or show timeout error
 - **FR-021**: System MUST show loading indicator during personalization generation
+- **FR-044**: System MUST cache personalized content in Redis with 30-minute TTL and key format: `personalized:{userId}:{chapterId}:{profileHash}`
+- **FR-045**: System MUST display "Show Original Content" toggle button when viewing personalized content
+- **FR-047**: System MUST invalidate personalization cache when user updates profile (profile hash changes)
 
 #### Content Translation
 
 - **FR-022**: System MUST display a "Translate to Urdu" button at the start of each textbook chapter for logged-in users
-- **FR-023**: Button MUST be visible only to authenticated users
+- **FR-023**: Button MUST be completely hidden (not disabled) for anonymous users
 - **FR-024**: System MUST invoke `translation-skill` when "Translate to Urdu" is clicked, passing chapter content
-- **FR-025**: Translation MUST preserve English technical terms (ROS, API, kinematics, etc.)
-- **FR-026**: Translation MUST preserve code snippets unchanged (no translation of code)
-- **FR-027**: Translation MUST preserve markdown formatting (headings, lists, tables)
+- **FR-025**: Translation MUST preserve 95% of English technical terms unchanged (kinematics, forward kinematics, end-effector, DH parameters, Jacobian, ROS2, API, URDF, Gazebo)
+- **FR-026**: Translation MUST preserve 100% of code snippets unchanged (no translation of programming code)
+- **FR-027**: Translation MUST preserve markdown formatting (headings, lists, tables) and mathematical symbols
 - **FR-028**: System MUST display translated content inline, replacing English content temporarily
-- **FR-029**: Translation MUST NOT persist to database; refreshing page shows original English
+- **FR-029**: Translation MUST NOT persist to database or cache; refreshing page ALWAYS returns to original English
 - **FR-030**: Translation MUST complete within 15 seconds or show timeout error
 - **FR-031**: System MUST show loading indicator during translation generation
+- **FR-046**: System MUST provide "Show Original English" toggle button when viewing translated content
+- **FR-048**: Translation quality MUST meet: 95% technical term preservation, 100% code preservation, grammatically correct Urdu
 
 #### Data Storage and Skills
 
 - **FR-032**: System MUST store user authentication data (users table: user_id, email, hashed_password, created_at)
-- **FR-033**: System MUST store user profiles (profiles table: profile_id, user_id, software_skills JSON, hardware_access enum, updated_at)
+- **FR-033**: System MUST store user profiles (profiles table: profile_id, user_id, software_skills JSONB, hardware_access ENUM, learning_goal TEXT nullable, updated_at)
 - **FR-034**: System MUST store personalization preferences (preferences table: preference_id, user_id, personalization_level enum, created_at)
 - **FR-035**: System MAY optionally log translation requests (translation_logs table: log_id, user_id, chapter_id, timestamp) for analytics
-- **FR-036**: System MUST implement `personalization-skill` as a reusable AI skill that takes user profile and chapter content as input
-- **FR-037**: System MUST implement `translation-skill` as a reusable AI skill that takes chapter content as input
-- **FR-038**: System MUST implement `user-profile-skill` as a reusable skill for fetching and updating user profiles
-- **FR-039**: System MUST implement `content-adapter-skill` as a reusable skill for formatting personalized/translated content
+- **FR-036**: System MUST implement `personalization-skill` as reusable AI skill that rewrites full chapter markdown using user profile context (separate from RAG)
+- **FR-037**: System MUST implement `translation-skill` as reusable AI skill that translates chapter markdown to Urdu (separate from RAG)
+- **FR-038**: System MUST implement `user-profile-skill` as reusable skill for CRUD operations on user profiles
+- **FR-039**: System MUST implement `content-adapter-skill` as reusable skill for formatting personalized/translated markdown output
 
 #### Integration Constraints
 
@@ -203,12 +208,16 @@ A logged-in user accesses their profile settings, updates their background infor
 
 - **A-001**: Better Auth library is compatible with FastAPI and provides session-based authentication
 - **A-002**: Neon Postgres database has sufficient capacity for user profiles (estimated 10,000 users in first year)
-- **A-003**: OpenRouter API (DeepSeek free model) supports translation to Urdu with acceptable quality
+- **A-003**: OpenRouter API (DeepSeek free model) supports translation to Urdu with acceptable quality (95% technical term preservation)
 - **A-004**: Users have basic familiarity with signup/login flows (no extensive onboarding needed)
 - **A-005**: Chapter content is structured as markdown with clear section boundaries for personalization
 - **A-006**: Translation skill can handle chapters up to 10,000 words without timeout
 - **A-007**: Users primarily access the platform on desktop browsers (responsive mobile design is secondary)
 - **A-008**: Profile questionnaire covers 90% of relevant background factors; edge cases handled with "Other" field
+- **A-009**: Redis cache is available for personalization caching (shared infrastructure with RAG chatbot)
+- **A-010**: Personalization and translation are completely separate from RAG chatbot logic (no shared AI skills)
+- **A-011**: Session storage in browser is acceptable for view mode preferences (personalized vs standard)
+- **A-012**: Multi-select software skills and single-select hardware access cover majority of user profiles
 
 ## Out of Scope
 
