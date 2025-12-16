@@ -11,7 +11,7 @@ const config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://physical-ai-and-humanoid-robotics-t-psi.vercel.app/', // Vercel URL
+  url: 'https://physical-ai-and-humanoid-robotics-t-psi.vercel.app', // Vercel URL
   // Set the /<baseUrl>/ pathname under which your site is served
   baseUrl: '/', // Root path for Vercel deployment
 
