@@ -8,7 +8,7 @@ const darkCodeTheme = require('prism-react-renderer').themes.dracula;
 const config = {
   title: 'Physical AI & Humanoid Robotics',
   tagline: 'From Simulated Brains to Embodied Intelligence',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/logo.svg',
 
   // Set the production url of your site here
   url: 'https://physical-ai-and-humanoid-robotics-t-psi.vercel.app', // Vercel URL
@@ -80,7 +80,7 @@ const config = {
       ],
 
       // Social card for OpenGraph
-      image: 'img/docusaurus-social-card.jpg',
+      image: 'img/docusaurus-social-card.svg',
 
       navbar: {
         title: 'Physical AI & Humanoid Robotics',
