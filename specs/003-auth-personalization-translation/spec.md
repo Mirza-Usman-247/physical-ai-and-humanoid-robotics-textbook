@@ -1,408 +1,248 @@
-# Feature Specification: Auth, Personalization & Translation Integration
+# Feature Specification: Authentication, Personalization, and Translation Integration
 
 **Feature Branch**: `003-auth-personalization-translation`
-**Created**: 2025-12-16
+**Created**: 2025-12-17
 **Status**: Draft
-**Input**: User description: "Feature Specification: Auth, Personalization & Translation Integration - Extend the existing RAG-enabled textbook platform with authentication, personalization, and translation capabilities."
+**Input**: User description: "Feature Specification: Authentication, Personalization, and Translation Integration
+
+Goal:
+Extend the existing Physical AI & Humanoid Robotics book platform with:
+1. User authentication (Signup/Signin)
+2. Personalized content rendering
+3. Full chapter Urdu translation (Focus Mode)
+4. Integration with existing RAG chatbot
+
+Authentication:
+- Use Better Auth (https://www.better-auth.com/)
+- Signup must collect:
+  - Software background (AI, ML, ROS, Python, Linux level)
+  - Hardware access (GPU, Jetson, Robot, Cloud only)
+- Store user profile in Neon Serverless Postgres
+
+Personalization:
+- Logged-in users can personalize chapter content
+- A "Personalize Chapter" button appears at the start of each chapter
+- Personalization adapts:
+  - Explanation depth
+  - Code complexity
+  - Hardware assumptions
+- Use OpenRouter free LLM models for personalization generation
+
+Translation:
+- Logged-in users can translate an entire chapter into Urdu
+- Translation runs in "Focus Mode":
+  - No extra commentary
+  - Faithful technical translation
+- Triggered via "Translate to Urdu" button at chapter start
+- Use OpenRouter free models
+
+Constraints:
+- No personalization or translation without login
+- RAG chatbot must respect personalized/translated context
+- System must remain fast and cost-efficient
+
+Output:
+Detailed specification of auth flow, personalization logic, translation pipeline, and UI integration."
+
+## Clarifications
+
+### Session 2025-12-17
+
+- Q: What minimum user profile data is mandatory vs optional at signup? → A: Email, password, and all 5 skill levels (AI, ML, ROS, Python, Linux) are mandatory; hardware access multi-select can be empty (representing users exploring options or cloud-only learners)
+- Q: How personalized/translated content is passed to the RAG chatbot? → A: Frontend sends transformed content chunks with each chatbot query via API request body (stateless RAG chatbot approach)
+- Q: Whether Urdu translation is cached or regenerated each time? → A: Session storage only, regenerate on new session (consistent with personalization approach, no database/Redis caching)
+- Q: Security boundaries between Better Auth and FastAPI backend? → A: Better Auth issues JWT/session token after authentication, FastAPI backend validates token on each API request (standard auth pattern)
+- Q: Token and rate limits of OpenRouter free models? → A: Research exact limits during planning phase; design system with graceful degradation to handle rate limiting (specific quotas deferred to implementation planning)
 
 ## User Scenarios & Testing
 
-### User Story 1 - Account Creation with Background Profile (Priority: P1)
+### User Story 1 - User Registration and Profile Setup (Priority: P1)
 
-A new user visits the platform, signs up with email/password, and completes a background questionnaire to help personalize their learning experience. The system captures software skills (Python, ML, ROS, Linux) and hardware access (RTX GPU, Jetson, Robot, Cloud only) to tailor content recommendations.
+A new visitor wants to start learning about Physical AI and Humanoid Robotics by creating an account that captures their technical background and available resources.
 
-**Why this priority**: Authentication and profile creation is the foundation for all personalization features. Without user accounts, personalization and translation features cannot be user-specific. This is the minimum viable product that enables all other features.
+**Why this priority**: This is the foundation for all personalization and translation features. Without user accounts, no other features in this spec can function. This delivers immediate value by allowing users to save progress and access gated features.
 
-**Independent Test**: Can be fully tested by creating an account through the signup form, completing the questionnaire, and verifying the profile is stored correctly. Delivers immediate value by creating a personalized user profile.
+**Independent Test**: Can be fully tested by completing the signup flow and verifying user profile is stored in the database with all collected information.
 
 **Acceptance Scenarios**:
 
-1. **Given** a new user on the homepage, **When** they click "Sign Up" and provide valid email/password, **Then** they are redirected to a background questionnaire
-2. **Given** a user on the questionnaire page, **When** they select their software background (Python, ML, ROS, Linux) and hardware access (GPU, Jetson, Robot, Cloud), **Then** their profile is saved and they are redirected to the textbook
-3. **Given** a returning user, **When** they sign in with valid credentials, **Then** they see a personalized welcome message with their profile summary
-4. **Given** invalid signup credentials (weak password, invalid email), **When** user attempts signup, **Then** system shows clear validation errors
+1. **Given** a visitor is on the book platform, **When** they click "Sign Up", **Then** they are presented with a registration form collecting email, password, software background (AI level, ML level, ROS level, Python level, Linux level), and hardware access (GPU, Jetson, Robot, Cloud only)
+2. **Given** a user completes the signup form with valid information, **When** they submit the form, **Then** their account is created, profile data is stored in Neon Postgres, and they are automatically signed in
+3. **Given** a user tries to sign up with an already registered email, **When** they submit the form, **Then** they receive an error message indicating the email is already in use
+4. **Given** a registered user returns to the platform, **When** they click "Sign In" and enter valid credentials, **Then** they are authenticated and their profile is loaded
 
 ---
 
 ### User Story 2 - Chapter Content Personalization (Priority: P2)
 
-A logged-in user reads a chapter and clicks "Personalize Content" at the chapter start. The system adapts explanations, code examples, and depth based on their background profile (e.g., more Python examples for Python developers, GPU-specific content for GPU owners).
+A logged-in learner with beginner Python skills and no robot hardware wants to personalize a chapter to match their skill level and available resources.
 
-**Why this priority**: This is the core value proposition after authentication. Users want content tailored to their skill level and resources. This can be delivered independently once user profiles exist.
+**Why this priority**: This is the core value proposition that differentiates the platform. It enables adaptive learning experiences. It depends on P1 (authentication) but can be developed and tested independently once auth exists.
 
-**Independent Test**: Can be tested by logging in, navigating to any chapter, clicking "Personalize Content", and verifying that the content adapts based on the user's profile. Delivers immediate learning value.
+**Independent Test**: Can be fully tested by logging in, clicking "Personalize Chapter" on any chapter, and verifying the content adapts to the user's profile (simplified explanations for beginners, cloud-based examples instead of hardware).
 
 **Acceptance Scenarios**:
 
-1. **Given** a logged-in user viewing a chapter, **When** they click "Personalize Content" button, **Then** the system generates personalized explanations using their profile data
-2. **Given** a user with Python background, **When** personalization runs, **Then** code examples prioritize Python implementations
-3. **Given** a user with GPU access, **When** personalization runs, **Then** content includes GPU-specific tutorials and optimizations
-4. **Given** a user with no hardware, **When** personalization runs, **Then** content focuses on cloud-based alternatives and simulation
-5. **Given** personalization is in progress, **When** user waits, **Then** they see a loading indicator and receive personalized content within 10 seconds
+1. **Given** a logged-in user is viewing a chapter, **When** they see the chapter start, **Then** a "Personalize Chapter" button is visible
+2. **Given** a user clicks "Personalize Chapter", **When** the personalization generates, **Then** the chapter content is rewritten to match their software skill levels (explanation depth), code complexity (based on Python/ML/AI levels), and hardware assumptions (cloud-only vs GPU vs Robot)
+3. **Given** a user has personalized a chapter, **When** they navigate away and return, **Then** the personalized version is preserved for their session
+4. **Given** a non-logged-in user views a chapter, **When** they look for personalization options, **Then** the "Personalize Chapter" button is not visible
 
 ---
 
 ### User Story 3 - Chapter Translation to Urdu (Priority: P3)
 
-A logged-in user reads a chapter and clicks "Translate to Urdu" at the chapter start. The system generates an Urdu translation of the chapter using AI skills while preserving technical terms, code snippets, and formatting. The translation is temporary and does not overwrite the original.
+A logged-in Urdu-speaking learner wants to read an entire chapter in Urdu while maintaining technical accuracy.
 
-**Why this priority**: Translation expands accessibility but is not required for core learning. Can be added independently after authentication exists. Lower priority than personalization as it serves a subset of users.
+**Why this priority**: This enables accessibility for Urdu-speaking learners and expands the platform's reach. It's independent of personalization and can be developed/tested separately. Priority is lower because it serves a specific language audience, whereas P1 and P2 are universal.
 
-**Independent Test**: Can be tested by logging in, navigating to any chapter, clicking "Translate to Urdu", and verifying the translated content appears correctly with preserved technical terms and code.
+**Independent Test**: Can be fully tested by logging in, clicking "Translate to Urdu" on any chapter, and verifying the entire chapter is translated with technical terms preserved.
 
 **Acceptance Scenarios**:
 
-1. **Given** a logged-in user viewing a chapter, **When** they click "Translate to Urdu" button, **Then** the system generates Urdu translation of the chapter content
-2. **Given** translated content, **When** user scrolls through the chapter, **Then** technical terms remain in English and code snippets are unchanged
-3. **Given** a user viewing translated content, **When** they refresh the page, **Then** they see the original English content (translation is not persistent)
-4. **Given** translation is in progress, **When** user waits, **Then** they see a loading indicator and receive translated content within 15 seconds
+1. **Given** a logged-in user is viewing a chapter, **When** they see the chapter start, **Then** a "Translate to Urdu" button is visible
+2. **Given** a user clicks "Translate to Urdu", **When** the translation processes, **Then** the entire chapter content is translated to Urdu in Focus Mode (faithful technical translation, no extra commentary, technical terms preserved)
+3. **Given** a user has translated a chapter to Urdu, **When** they navigate away and return, **Then** the translated version is preserved for their session
+4. **Given** a non-logged-in user views a chapter, **When** they look for translation options, **Then** the "Translate to Urdu" button is not visible
 
 ---
 
-### User Story 4 - Profile Management and Updates (Priority: P3)
+### User Story 4 - RAG Chatbot Context Awareness (Priority: P2)
 
-A logged-in user accesses their profile settings, updates their background information (learned new skills, acquired hardware), and sees their changes reflected in future personalizations.
+A logged-in user who has personalized or translated a chapter wants to ask the RAG chatbot questions that are answered in the context of their customized content.
 
-**Why this priority**: Profile updates enhance personalization quality but are not critical for initial launch. Users can update profiles later as they progress. Lower priority than core personalization.
+**Why this priority**: This ensures the chatbot remains helpful and consistent with the user's customized view of the content. It's P2 because it enhances the learning experience but requires both P1 (auth) and either personalization or translation to be meaningful.
 
-**Independent Test**: Can be tested by logging in, navigating to profile settings, updating background information, and verifying changes are saved and applied to future personalizations.
+**Independent Test**: Can be fully tested by personalizing/translating a chapter, then asking the RAG chatbot a question and verifying the answer reflects the personalized/translated context.
 
 **Acceptance Scenarios**:
 
-1. **Given** a logged-in user, **When** they navigate to "Profile Settings", **Then** they see their current background information (software skills, hardware access)
-2. **Given** a user on profile settings, **When** they update their software skills or hardware access, **Then** changes are saved immediately
-3. **Given** updated profile information, **When** user personalizes a chapter, **Then** new personalizations reflect the updated profile
-4. **Given** a user updates their profile, **When** they return to the homepage, **Then** they see updated recommendations based on new profile
+1. **Given** a user has personalized a chapter with beginner-level settings, **When** they ask the RAG chatbot a question about that chapter, **Then** the chatbot's response is tailored to beginner level (simplified explanations, references to cloud examples)
+2. **Given** a user has translated a chapter to Urdu, **When** they ask the RAG chatbot a question in Urdu about that chapter, **Then** the chatbot responds in Urdu using the translated context
+3. **Given** a user has not personalized or translated content, **When** they ask the RAG chatbot a question, **Then** the chatbot uses the default English content as context
 
 ---
 
 ### Edge Cases
 
-- What happens when a user tries to personalize or translate without being logged in?
-  - System redirects to login page with a message: "Please sign in to personalize content"
-
-- How does the system handle AI skill failures during personalization or translation?
-  - Show fallback message: "Personalization unavailable. Showing standard content."
-  - Log error for debugging, do not break user experience
-
-- What happens when a user has an incomplete profile (skipped questionnaire)?
-  - Allow access but show banner: "Complete your profile for personalized content"
-  - Personalization uses default settings until profile is complete
-
-- How does the system handle very long chapters for translation (token limits)?
-  - Break chapter into sections, translate separately, stitch together
-  - Show progress indicator for multi-section translations
-
-- What happens if a user clicks personalize/translate multiple times rapidly?
-  - Disable button during processing, show "Processing..." state
-  - Ignore duplicate requests, complete first request only
+- What happens when a user has no hardware access selected (empty multi-select)?
+  - Personalization treats this as cloud-only learner, providing cloud-based examples and alternatives
+- What happens when personalization/translation generation fails (API timeout, rate limit)?
+  - User receives a friendly error message, option to retry, original content remains visible
+- How does the system handle concurrent personalization and translation requests?
+  - Only one transformation can be active at a time; attempting both shows a message to choose one
+- What happens when a user updates their profile after personalizing content?
+  - Existing personalized content remains unchanged until user clicks "Personalize Chapter" again
+- What happens when the OpenRouter API is unavailable?
+  - Personalization/translation buttons are disabled with a message indicating the service is temporarily unavailable
+- How are personalized/translated versions stored?
+  - Stored in user session (not database) to reduce costs and complexity; regenerated on demand if session expires
+- What happens when a user shares a personalized/translated chapter URL?
+  - Other users see the default content; personalization/translation is user-specific and not shareable
+- What happens when personalized/translated content chunks sent to RAG chatbot exceed API request size limits?
+  - Frontend intelligently selects most relevant content sections (e.g., current chapter section user is viewing) to fit within limits
+- What happens when user's authentication token expires during active session?
+  - Backend returns 401, frontend prompts user to re-authenticate, session content is lost (regenerated after re-login)
 
 ## Requirements
 
 ### Functional Requirements
 
-#### Authentication (Better Auth Integration)
-
-- **FR-001**: System MUST provide a "Sign Up" page with email and password fields
-- **FR-002**: System MUST validate email format and require passwords with minimum 8 characters, including uppercase, lowercase, and numbers
-- **FR-003**: System MUST provide a "Sign In" page with email and password authentication
-- **FR-004**: System MUST store user authentication data (email, hashed password, session tokens) in Neon Serverless Postgres
-- **FR-005**: System MUST implement Better Auth library for authentication flows (signup, signin, session management, logout)
-- **FR-006**: System MUST redirect authenticated users from login/signup pages to the textbook homepage
-- **FR-007**: System MUST provide a logout function that clears session and redirects to homepage
-
-#### User Profile and Background Questionnaire
-
-- **FR-008**: System MUST display a background questionnaire immediately after successful signup
-- **FR-009**: Questionnaire MUST collect software background with multi-select checkboxes: Python, Machine Learning/Deep Learning, ROS/ROS2, Linux/Ubuntu, C++/C, JavaScript/Web Development, None (Beginner), Other (text input)
-- **FR-010**: Questionnaire MUST collect hardware access with single-select radio buttons (mutually exclusive): RTX GPU, Jetson Device, Physical Robot, Cloud Only
-- **FR-011**: System MUST store user background data in Neon Postgres as: software_skills (JSONB array), hardware_access (ENUM), learning_goal (TEXT, optional)
-- **FR-012**: System MUST allow users to skip questionnaire but show a "Complete Profile" reminder on subsequent visits
-- **FR-013**: System MUST provide a "Profile Settings" page where users can update their background information
-
-#### Content Personalization
-
-- **FR-014**: System MUST display a "Personalize Content" button at the start of each textbook chapter for logged-in users
-- **FR-015**: Button MUST be completely hidden (not disabled) for anonymous users
-- **FR-016**: System MUST invoke `personalization-skill` when "Personalize Content" is clicked, passing user profile and full chapter markdown
-- **FR-017**: Personalization MUST rewrite entire chapter once (static transformation, not dynamic overlay) based on software background
-- **FR-018**: Personalization MUST adapt hardware sections based on access (e.g., GPU tutorials for GPU owners, cloud alternatives for cloud-only users)
-- **FR-019**: System MUST display personalized content inline, replacing standard chapter content completely
-- **FR-020**: Personalization MUST complete within 10 seconds or show timeout error
-- **FR-021**: System MUST show loading indicator during personalization generation
-- **FR-044**: System MUST cache personalized content in Redis with 30-minute TTL and key format: `personalized:{userId}:{chapterId}:{profileHash}`
-- **FR-045**: System MUST display "Show Original Content" toggle button when viewing personalized content
-- **FR-047**: System MUST invalidate personalization cache when user updates profile (profile hash changes)
-
-#### Content Translation
-
-- **FR-022**: System MUST display a "Translate to Urdu" button at the start of each textbook chapter for logged-in users
-- **FR-023**: Button MUST be completely hidden (not disabled) for anonymous users
-- **FR-024**: System MUST invoke `translation-skill` when "Translate to Urdu" is clicked, passing chapter content
-- **FR-025**: Translation MUST preserve 95% of English technical terms unchanged (kinematics, forward kinematics, end-effector, DH parameters, Jacobian, ROS2, API, URDF, Gazebo)
-- **FR-026**: Translation MUST preserve 100% of code snippets unchanged (no translation of programming code)
-- **FR-027**: Translation MUST preserve markdown formatting (headings, lists, tables) and mathematical symbols
-- **FR-028**: System MUST display translated content inline, replacing English content temporarily
-- **FR-029**: Translation MUST NOT persist to database or cache; refreshing page ALWAYS returns to original English
-- **FR-030**: Translation MUST complete within 15 seconds or show timeout error
-- **FR-031**: System MUST show loading indicator during translation generation
-- **FR-046**: System MUST provide "Show Original English" toggle button when viewing translated content
-- **FR-048**: Translation quality MUST meet: 95% technical term preservation, 100% code preservation, grammatically correct Urdu
-
-#### Data Storage and Skills
-
-- **FR-032**: System MUST store user authentication data (users table: user_id, email, hashed_password, created_at)
-- **FR-033**: System MUST store user profiles (profiles table: profile_id, user_id, software_skills JSONB, hardware_access ENUM, learning_goal TEXT nullable, updated_at)
-- **FR-034**: System MUST store personalization preferences (preferences table: preference_id, user_id, personalization_level enum, created_at)
-- **FR-035**: System MAY optionally log translation requests (translation_logs table: log_id, user_id, chapter_id, timestamp) for analytics
-- **FR-036**: System MUST implement `personalization-skill` as reusable AI skill that rewrites full chapter markdown using user profile context (separate from RAG)
-- **FR-037**: System MUST implement `translation-skill` as reusable AI skill that translates chapter markdown to Urdu (separate from RAG)
-- **FR-038**: System MUST implement `user-profile-skill` as reusable skill for CRUD operations on user profiles
-- **FR-039**: System MUST implement `content-adapter-skill` as reusable skill for formatting personalized/translated markdown output
-
-#### Integration Constraints
-
-- **FR-040**: System MUST integrate authentication routes into existing FastAPI backend without breaking RAG chatbot endpoints
-- **FR-041**: System MUST use existing Neon Postgres database instance (add new tables only)
-- **FR-042**: Skills MUST be framework-agnostic and reusable across multiple books/chapters
-- **FR-043**: Frontend MUST integrate auth UI into existing Docusaurus theme without breaking existing navigation
+- **FR-001**: System MUST provide user registration collecting email (mandatory), password (mandatory), software background with all 5 skill levels mandatory (AI level, ML level, ROS level, Python level, Linux level as self-assessed proficiency ratings), and hardware access (GPU, Jetson, Robot, Cloud only as multi-select options, optional - can be empty for exploring/cloud-only users)
+- **FR-002**: System MUST authenticate users using Better Auth library with email/password credentials
+- **FR-003**: System MUST store user profiles in Neon Serverless Postgres database including all registration fields
+- **FR-004**: System MUST validate email format and password strength (minimum 8 characters, at least one uppercase, one lowercase, one number) during registration
+- **FR-005**: System MUST prevent duplicate registrations with the same email address
+- **FR-006**: System MUST provide sign-in functionality for registered users
+- **FR-007**: System MUST display "Personalize Chapter" button at the start of each chapter only for logged-in users
+- **FR-008**: System MUST generate personalized chapter content using OpenRouter free LLM models when user clicks "Personalize Chapter"
+- **FR-009**: Personalization MUST adapt explanation depth based on user's AI/ML skill levels (higher skills = more concise, advanced terminology; lower skills = detailed explanations, basic terminology)
+- **FR-010**: Personalization MUST adapt code complexity based on user's Python/ROS skill levels (higher skills = advanced patterns, optimization focus; lower skills = simple patterns, comments, step-by-step)
+- **FR-011**: Personalization MUST adapt hardware assumptions based on user's hardware access (GPU = GPU-accelerated examples; Jetson = edge deployment examples; Robot = physical robot examples; Cloud only = cloud-based alternatives)
+- **FR-012**: System MUST display "Translate to Urdu" button at the start of each chapter only for logged-in users
+- **FR-013**: System MUST translate entire chapter content to Urdu using OpenRouter free LLM models when user clicks "Translate to Urdu"
+- **FR-014**: Translation MUST operate in Focus Mode: faithful technical translation only, no extra commentary, technical terms preserved in English or transliterated
+- **FR-015**: System MUST preserve personalized or translated content in user's session for the duration of their browsing session only; content is regenerated on new session (no database or cache persistence)
+- **FR-016**: System MUST integrate personalized/translated context with RAG chatbot by having the frontend send transformed content chunks with each chatbot query via API request body, ensuring chatbot responses reflect the user's customized content view
+- **FR-017**: System MUST prevent personalization and translation features from being accessible to non-logged-in users
+- **FR-018**: System MUST use OpenRouter free tier LLM models to minimize costs for personalization and translation
+- **FR-019**: System MUST handle API failures gracefully with user-friendly error messages and fallback to original content
+- **FR-020**: System MUST allow only one content transformation (personalization OR translation) active at a time per chapter
+- **FR-021**: System MUST validate that all mandatory fields (email, password, all 5 skill levels) are completed before allowing registration submission
+- **FR-022**: Better Auth MUST issue JWT or session token upon successful authentication
+- **FR-023**: FastAPI backend MUST validate authentication token on each API request for personalization, translation, and RAG chatbot endpoints
+- **FR-024**: System MUST return 401 Unauthorized response when token is missing, invalid, or expired
 
 ### Key Entities
 
-- **User**: Represents an authenticated user account
-  - Attributes: user_id (UUID), email (string), password_hash (string), created_at (timestamp), last_login (timestamp)
-  - Relationships: Has one Profile, has many Preferences, has many TranslationLogs
-
-- **Profile**: Represents user background information for personalization
-  - Attributes: profile_id (UUID), user_id (foreign key), software_skills (JSON array: ["Python", "ML", "ROS", "Linux"]), hardware_access (enum: GPU/Jetson/Robot/CloudOnly), updated_at (timestamp)
-  - Relationships: Belongs to one User
-
-- **Preference**: Represents user personalization settings
-  - Attributes: preference_id (UUID), user_id (foreign key), personalization_level (enum: basic/detailed/expert), auto_personalize (boolean), created_at (timestamp)
-  - Relationships: Belongs to one User
-
-- **TranslationLog**: Optional logging of translation requests for analytics
-  - Attributes: log_id (UUID), user_id (foreign key), chapter_id (string), language (string: "urdu"), timestamp (timestamp)
-  - Relationships: Belongs to one User
-
-- **Chapter**: Represents textbook chapter content (existing entity)
-  - Attributes: chapter_id (string), module_id (string), content (markdown text), title (string)
-  - Relationships: Can be personalized or translated dynamically (not stored)
+- **User**: Represents a registered learner with authentication credentials, software skill levels (AI, ML, ROS, Python, Linux as proficiency ratings), and hardware access profile (GPU, Jetson, Robot, Cloud only). Has one-to-one relationship with UserProfile.
+- **UserProfile**: Contains detailed learning context including software background ratings (all 5 skill levels mandatory: AI, ML, ROS, Python, Linux) and hardware availability flags (optional multi-select, can be empty). Used to drive personalization logic. Stored in Neon Postgres.
+- **Chapter**: Original book content unit that can be personalized or translated. Contains markdown/MDX content, title, and navigation metadata.
+- **PersonalizedContent**: Session-only stored transformed version of a Chapter adapted to a User's profile. Never persisted to database or cache. Regenerated on new session. Includes transformation metadata (which skills influenced the adaptation).
+- **TranslatedContent**: Session-only stored Urdu translation of a Chapter. Never persisted to database or cache. Regenerated on new session. Maintains mapping to original English technical terms.
+- **ChatbotContext**: Represents the content chunks sent from frontend to RAG chatbot API with each query. Contains either original, personalized, or translated chapter content relevant to the user's question. Enables stateless chatbot operation without backend session dependencies.
 
 ## Success Criteria
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can complete account creation and profile questionnaire in under 3 minutes
-- **SC-002**: 80% of new users complete the background questionnaire during signup
-- **SC-003**: Personalized content generates and displays within 10 seconds for 95% of requests
-- **SC-004**: Translated content generates and displays within 15 seconds for 95% of requests
-- **SC-005**: Authentication system handles 500 concurrent users without performance degradation
-- **SC-006**: Personalization accuracy: 85% of users report content matches their skill level (via feedback survey)
-- **SC-007**: Translation accuracy: 90% of technical terms are preserved correctly in Urdu content
-- **SC-008**: System uptime: 99.5% availability for authentication and personalization features
-- **SC-009**: Zero breaking changes to existing RAG chatbot functionality after integration
-- **SC-010**: Skills are successfully reused across at least 3 different chapters without modification
+- **SC-001**: Users can complete registration in under 3 minutes including all profile fields
+- **SC-002**: Personalized chapter generation completes in under 10 seconds for chapters up to 5000 words
+- **SC-003**: Chapter translation to Urdu completes in under 15 seconds for chapters up to 5000 words
+- **SC-004**: 95% of personalization requests successfully generate content on first attempt (5% error budget for API failures)
+- **SC-005**: 95% of translation requests successfully generate content on first attempt (5% error budget for API failures)
+- **SC-006**: RAG chatbot responds within 3 seconds when using personalized or translated context
+- **SC-007**: Personalized content adapts to at least 3 different user profile archetypes demonstrably (beginner/cloud-only, intermediate/GPU, advanced/robot)
+- **SC-008**: Translated content preserves 100% of technical terms and code snippets accurately
+- **SC-009**: System handles 100 concurrent users without degradation in authentication or content transformation performance
+- **SC-010**: User authentication success rate exceeds 99% for valid credentials
+- **SC-011**: Zero personalized or translated content is accessible to non-logged-in users (100% access control enforcement)
+- **SC-012**: Cost per personalization/translation request remains under $0.01 using OpenRouter free models
 
 ## Assumptions
 
-- **A-001**: Better Auth library is compatible with FastAPI and provides session-based authentication
-- **A-002**: Neon Postgres database has sufficient capacity for user profiles (estimated 10,000 users in first year)
-- **A-003**: OpenRouter API (DeepSeek free model) supports translation to Urdu with acceptable quality (95% technical term preservation)
-- **A-004**: Users have basic familiarity with signup/login flows (no extensive onboarding needed)
-- **A-005**: Chapter content is structured as markdown with clear section boundaries for personalization
-- **A-006**: Translation skill can handle chapters up to 10,000 words without timeout
-- **A-007**: Users primarily access the platform on desktop browsers (responsive mobile design is secondary)
-- **A-008**: Profile questionnaire covers 90% of relevant background factors; edge cases handled with "Other" field
-- **A-009**: Redis cache is available for personalization caching (shared infrastructure with RAG chatbot)
-- **A-010**: Personalization and translation are completely separate from RAG chatbot logic (no shared AI skills)
-- **A-011**: Session storage in browser is acceptable for view mode preferences (personalized vs standard)
-- **A-012**: Multi-select software skills and single-select hardware access cover majority of user profiles
+- OpenRouter free tier LLM models are sufficient for generating quality personalized and translated content
+- Exact OpenRouter free tier rate limits and token quotas will be researched during planning phase (specific numbers deferred)
+- User skill level self-assessments are honest and accurate enough for meaningful personalization
+- Session storage is acceptable for personalized/translated content (users willing to regenerate on new sessions)
+- Urdu translation quality from free LLM models meets learner expectations for technical content
+- Users prefer per-chapter personalization/translation over entire book transformations (reduces API costs and latency)
+- Better Auth library supports Neon Serverless Postgres and can generate JWT/session tokens compatible with FastAPI validation
+- Existing RAG chatbot architecture can be extended to accept user-specific context and validate authentication tokens without major refactoring
+- Chapters are relatively independent, allowing per-chapter transformation without cross-chapter consistency issues
+- Users will not attempt to personalize and translate the same chapter simultaneously (UI prevents this)
 
 ## Out of Scope
 
-- **OS-001**: Social authentication (Google, GitHub, Facebook login) - Phase 2
-- **OS-002**: Two-factor authentication (2FA) - Phase 2
-- **OS-003**: Password reset via email - Phase 1.5 (simple manual reset initially)
-- **OS-004**: Translation to languages other than Urdu - Phase 2
-- **OS-005**: Offline mode for translated content - Not planned
-- **OS-006**: Personalization history or version comparison - Phase 2
-- **OS-007**: Admin dashboard for user management - Phase 2
-- **OS-008**: GDPR compliance tooling (data export, deletion) - Phase 1.5
-- **OS-009**: Real-time collaborative editing of personalized content - Not planned
-- **OS-010**: Integration with external learning management systems (LMS) - Phase 3
+- OAuth/SSO integration (email/password only for initial release)
+- Translation to languages other than Urdu
+- Storing personalized/translated content in database for persistence across sessions
+- User profile editing after registration (profile is immutable in this release)
+- Analytics/tracking of which personalizations users prefer
+- A/B testing different personalization strategies
+- Offline access to personalized/translated content
+- Exporting personalized/translated content as PDF/ebook
+- Collaborative features (sharing personalized content with other users)
+- Admin dashboard for managing users or content transformations
+- Multi-language RAG chatbot (chatbot only responds in language of current content view)
+- Incremental/partial chapter personalization (all-or-nothing transformation)
+- Undo/revert personalization/translation (user must refresh page to see original)
 
-## Clarifications
+## Dependencies
 
-**Date**: 2025-12-16
-**Status**: All 7 clarification questions resolved
+- **Better Auth library**: Authentication framework for user signup/signin and JWT/session token generation
+- **Neon Serverless Postgres**: Database for storing user profiles
+- **OpenRouter API**: Free tier LLM models for personalization and translation (exact rate limits and token quotas to be researched during planning)
+- **Existing RAG chatbot implementation**: Must be extended to accept user-specific context and validate authentication tokens
+- **Existing Docusaurus/MDX book platform**: UI must be enhanced with auth and transformation buttons
+- **Session management system**: Required to store personalized/translated content temporarily in frontend
+- **FastAPI backend**: Must implement token validation middleware for all protected endpoints (personalization, translation, chatbot)
 
-### 1. Signup Questionnaire Design
+## Risks
 
-**Question**: What are the exact questions asked during signup for software and hardware background?
-
-**Decision**:
-- **Software Background**: Multi-select checkboxes allowing multiple selections
-  - Options: Python, Machine Learning/Deep Learning, ROS/ROS2, Linux/Ubuntu, C++/C, JavaScript/Web Development, None (Beginner), Other (free text input)
-  - Storage: JSONB array in database (e.g., `["Python", "ML", "ROS"]`)
-  - Rationale: Users often have multiple skills; multi-select captures full profile
-
-- **Hardware Access**: Single-select radio buttons (mutually exclusive)
-  - Options: RTX GPU, Jetson Device, Physical Robot, Cloud Only
-  - Storage: ENUM type in database
-  - Rationale: Users typically have one primary hardware setup for learning
-
-- **Optional Field**: Learning goal (free text, 200 characters max)
-  - Storage: TEXT field, nullable
-  - Purpose: Contextual personalization (e.g., "I want to build autonomous drones")
-
-**Integrated into**: FR-009, FR-010, FR-011
-
-### 2. Personalization vs RAG Architecture
-
-**Question**: How does personalization differ from RAG answers (static chapter rewrite vs dynamic overlay)?
-
-**Decision**:
-- **Personalization**: Static chapter transformation (one-time rewrite)
-  - Triggered manually by "Personalize Content" button
-  - Rewrites entire chapter based on user profile
-  - Cached in Redis for 30 minutes (see Clarification #3)
-  - Output: Completely new markdown content replacing original
-
-- **RAG Chatbot**: Dynamic Q&A system (real-time responses)
-  - Triggered by user questions in chat widget
-  - Retrieves relevant sections, generates answers
-  - No chapter rewriting, only conversational responses
-  - Uses separate AI skills (rag-retriever, rag-answerer, citation-mapper)
-
-- **No Shared Logic**: Personalization and RAG are completely independent
-  - Different AI skills (personalization-skill vs rag-* skills)
-  - Different triggers, scopes, and outputs
-  - Shared infrastructure: LLM API (OpenRouter/DeepSeek) only
-
-**Integrated into**: FR-017, FR-036, Assumption A-010
-
-### 3. Caching Strategy
-
-**Question**: Is personalized content cached or regenerated every request?
-
-**Decision**:
-- **Redis Cache**: 30-minute TTL for personalized content
-  - **Key Format**: `personalized:{userId}:{chapterId}:{profileHash}`
-  - **Profile Hash**: MD5 hash of `software_skills + hardware_access + learning_goal`
-  - **Cache Hit**: Serve from Redis (<100ms response)
-  - **Cache Miss**: Generate with LLM (~10 seconds), then cache
-
-- **Cache Invalidation**:
-  - Automatic: 30-minute TTL expiration
-  - Manual: User updates profile → profile hash changes → new cache key
-  - Admin: Clear cache endpoint for content updates
-
-- **Performance Targets**:
-  - First personalization request: <10 seconds (FR-020)
-  - Cached personalization: <100ms
-  - Cache hit rate: >80% for returning users
-
-**Integrated into**: FR-044, FR-047
-
-### 4. Urdu Translation Quality Expectations
-
-**Question**: What are the technical term preservation rules for Urdu translation?
-
-**Decision**:
-- **95% English Technical Term Preservation**:
-  - Preserve: kinematics, forward kinematics, end-effector, DH parameters, Jacobian, ROS2, API, URDF, Gazebo, trajectory, pose, quaternion
-  - Translate: Common verbs, explanations, instructional text
-
-- **Hybrid Format** (Recommended):
-  - Pattern: `"Forward kinematics (آگے کی حرکیات) calculates..."`
-  - First mention: English term with Urdu translation in parentheses
-  - Subsequent mentions: English term only
-  - Rationale: Helps users learn standard terminology while understanding concepts
-
-- **100% Code Preservation**:
-  - All code snippets, variable names, function names remain unchanged
-  - Comments in code blocks remain in English (consistency with global docs)
-
-- **Quality Metrics** (FR-048):
-  - 95% technical term preservation rate
-  - 100% code snippet preservation
-  - Grammatically correct Urdu prose
-  - Measurable via automated testing and manual review
-
-**Integrated into**: FR-025, FR-026, FR-048
-
-### 5. User Toggle Controls
-
-**Question**: How do users revert to original English content after personalization or translation?
-
-**Decision**:
-- **Personalization Toggle**:
-  - Button: "Show Original Content" (appears when viewing personalized chapter)
-  - Action: Reload chapter from original markdown source
-  - State: Stored in session storage (`personalizationView: "original" | "personalized"`)
-
-- **Translation Toggle**:
-  - Button: "Show Original English" (appears when viewing translated chapter)
-  - Action: Reload chapter from original English markdown
-  - State: Stored in session storage (`translationView: "original" | "translated"`)
-
-- **Persistence Rules**:
-  - Personalization: Cached in Redis (30-min TTL) but view preference is session-only
-  - Translation: **Never persists** - refresh always returns to English (FR-029)
-  - Rationale: Translation is temporary preview; original English is canonical
-
-- **UI Behavior**:
-  - Toggle buttons appear inline at chapter top
-  - Clear visual indicator when viewing non-original content
-  - Single click switches between views without page reload
-
-**Integrated into**: FR-045, FR-046, FR-029
-
-### 6. Permission Boundaries
-
-**Question**: Are personalization and translation buttons disabled or hidden for anonymous users?
-
-**Decision**:
-- **Completely Hidden** (not disabled):
-  - Anonymous users: No "Personalize Content" or "Translate to Urdu" buttons visible
-  - Logged-in users: Buttons appear at chapter start
-  - Rationale: Disabled buttons create confusion ("Why can't I click this?"); hidden buttons are cleaner UX
-
-- **Strict API Authentication**:
-  - All personalization and translation API endpoints require valid session
-  - Unauthenticated requests: Return 401 Unauthorized
-  - No fallback to guest personalization (would dilute feature value)
-
-- **Redirect Flow**:
-  - If user somehow accesses personalization URL while logged out → redirect to login page
-  - After login → redirect back to chapter with personalization available
-
-**Integrated into**: FR-015, FR-023, FR-040
-
-### 7. Skills Interaction with RAG
-
-**Question**: How do personalization and translation skills interact with RAG without duplicating logic?
-
-**Decision**:
-- **Complete Separation**:
-  - **personalization-skill**: Independent skill for chapter rewriting
-  - **translation-skill**: Independent skill for Urdu translation
-  - **RAG skills** (rag-retriever, rag-answerer, citation-mapper): Unchanged
-
-- **Shared Infrastructure Only**:
-  - All skills use OpenRouter API with DeepSeek free model
-  - LLM configuration (API keys, model IDs) shared via environment variables
-  - No shared prompts, no shared context, no shared logic
-
-- **Different Contexts and Prompts**:
-  - Personalization: Full chapter markdown + user profile → personalized chapter
-  - Translation: Full chapter markdown → Urdu translation with term preservation
-  - RAG: User question + retrieved chunks → conversational answer with citations
-
-- **No Duplication**:
-  - Each skill has single responsibility (SRP)
-  - Skills are framework-agnostic and reusable (FR-042)
-  - Can be tested independently
-
-**Integrated into**: FR-036, FR-037, FR-038, FR-039, Assumption A-010
+- OpenRouter free tier rate limits may restrict concurrent users during peak usage (mitigation: research exact limits during planning, implement queuing and user-friendly rate limit messages, design with graceful degradation)
+- LLM-generated personalized content may introduce technical inaccuracies or drift from original meaning (mitigation: include disclaimer that personalized content is AI-generated, provide "View Original" option)
+- Urdu translation quality may vary significantly depending on technical complexity of chapter (mitigation: clearly label as "AI Translation", allow user feedback/reporting of poor translations)
+- Session storage of transformations means users lose personalized/translated content on session expiry, potentially frustrating users (mitigation: display clear message about session-based storage, make regeneration fast)
+- Integrating user-specific context into RAG chatbot may increase chatbot response latency (mitigation: optimize context injection, cache frequently accessed personalized content chunks)
+- Better Auth and Neon Postgres integration may require unexpected configuration or migration work (mitigation: prototype auth integration early in planning phase)

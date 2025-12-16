@@ -1,0 +1,202 @@
+/**
+ * InputBox Styles
+ */
+
+.inputBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selectedTextBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #e8f5e9;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #2e7d32;
+}
+
+.dark .selectedTextBanner {
+  background: #1b5e20;
+  color: #a5d6a7;
+}
+
+.selectedTextBanner svg {
+  flex-shrink: 0;
+}
+
+.selectedTextBanner span {
+  flex: 1;
+}
+
+.selectedTextBanner button {
+  border: none;
+  background: none;
+  color: currentColor;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+}
+
+.selectedTextBanner button:hover {
+  opacity: 1;
+}
+
+.selectionHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.captureButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px dashed #d0d0d0;
+  border-radius: 6px;
+  background: transparent;
+  color: #666;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.captureButton:hover {
+  border-color: #667eea;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.dark .captureButton {
+  border-color: #4a4a4a;
+  color: #999;
+}
+
+.dark .captureButton:hover {
+  border-color: #667eea;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.captureButton svg {
+  flex-shrink: 0;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  background: white;
+  transition: border-color 0.2s ease;
+}
+
+.dark .inputWrapper {
+  background: #2a2a2a;
+  border-color: #3a3a3a;
+}
+
+.inputWrapper:focus-within {
+  border-color: #667eea;
+}
+
+.textarea {
+  flex: 1;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  background: transparent;
+  color: inherit;
+  min-height: 24px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.textarea::placeholder {
+  color: #999;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.clearButton,
+.sendButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.clearButton {
+  color: #999;
+}
+
+.clearButton:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #666;
+}
+
+.dark .clearButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+}
+
+.sendButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.sendButton:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.sendButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 4px;
+  font-size: 11px;
+  color: #999;
+}
+
+.charCount {
+  font-weight: 500;
+}
+
+.hint {
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .hint {
+    display: none;
+  }
+}

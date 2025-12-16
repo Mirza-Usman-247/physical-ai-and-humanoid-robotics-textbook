@@ -1,108 +1,84 @@
 ---
 id: 002
-title: Clarifications Resolved - Auth Translation
+title: Clarifications Resolved
 stage: spec
-date: 2025-12-16
+date: 2025-12-17
 surface: agent
-model: claude-sonnet-4.5
+model: claude-sonnet-4-5
 feature: 003-auth-personalization-translation
 branch: 003-auth-personalization-translation
-user: developer
+user: Mirza-Usman-247
 command: /sp.clarify
-labels: ["clarifications", "questionnaire", "caching", "translation", "permissions", "architecture"]
+labels: ["clarification", "specification", "user-profile", "caching", "security", "rate-limits", "chatbot-integration"]
 links:
   spec: specs/003-auth-personalization-translation/spec.md
-  clarifications: specs/003-auth-personalization-translation/clarifications.md
   ticket: null
   adr: null
   pr: null
 files:
-  - specs/003-auth-personalization-translation/clarifications.md
-  - specs/003-auth-personalization-translation/spec.md (updated)
-  - specs/003-auth-personalization-translation/checklists/requirements.md (updated)
+  - specs/003-auth-personalization-translation/spec.md
 tests:
-  - All 7 clarification questions answered
-  - Functional requirements updated with explicit decisions
-  - Assumptions expanded to cover edge cases
+  - All 5 clarification questions answered and integrated
+  - Spec validation passed (no contradictions, placeholders resolved)
 ---
 
 ## Prompt
 
-Clarifications Required:
-
-1. Exact questions asked during signup for software and hardware background.
-2. How personalization differs from RAG answers (static chapter rewrite vs dynamic overlay).
-3. Whether personalized content is cached or regenerated every request.
-4. Urdu translation quality expectations (technical terms: translated or preserved).
-5. User control over reverting to original English content.
-6. Permission boundaries: personalization and translation only for logged-in users.
-7. How skills interact with RAG without duplicating logic.
+1. What minimum user profile data is mandatory vs optional at signup.
+2. Whether personalization is persisted or generated on-demand.
+3. How personalized content interacts with static Docusaurus markdown.
+4. Token and rate limits of OpenRouter free models.
+5. Whether Urdu translation is cached or regenerated each time.
+6. How personalized/translated content is passed to the RAG chatbot.
+7. Security boundaries between Better Auth and FastAPI backend.
 
 Output:
-Explicit assumptions and decisions to remove ambiguity.
+Explicit assumptions and decisions removing ambiguity for implementation.
 
 ## Response snapshot
 
-Created comprehensive clarifications document addressing all 7 questions:
+Successfully resolved 5 critical ambiguities through sequential questioning:
 
-**1. Signup Questionnaire Design:**
-- Software: Multi-select (Python, ML, ROS, Linux, C++, JS, None/Beginner, Other)
-- Hardware: Single-select radio (GPU, Jetson, Robot, CloudOnly)
-- Optional: Learning goal (free text)
-- Storage: JSONB for skills, ENUM for hardware
+**Q1: User profile field requirements** → Answer: Email, password, and all 5 skill levels mandatory; hardware access optional (can be empty)
+- Updated FR-001 to specify mandatory/optional fields
+- Added FR-021 for form validation
+- Updated edge cases to handle empty hardware selection
+- Updated UserProfile entity description
 
-**2. Personalization vs RAG Architecture:**
-- Personalization = Static chapter rewrite (one-time transformation)
-- RAG = Dynamic Q&A (real-time responses)
-- No shared logic between systems
-- Different triggers, scopes, outputs
+**Q2: RAG chatbot context delivery** → Answer: Frontend sends transformed content chunks with each query (stateless)
+- Updated FR-016 to specify stateless approach
+- Updated ChatbotContext entity to reflect chunk-based delivery
+- Added edge case for content size limits
 
-**3. Caching Strategy:**
-- Redis cache with 30-minute TTL
-- Key format: `personalized:{userId}:{chapterId}:{profileHash}`
-- Cache invalidation: Profile update, TTL expiration
-- First request: ~10s, cached: <100ms
+**Q3: Translation caching strategy** → Answer: Session storage only, regenerate on new session (no database/Redis caching)
+- Updated FR-015 to explicitly state no persistence
+- Updated PersonalizedContent and TranslatedContent entities to emphasize session-only storage
+- Maintained consistency with personalization approach
 
-**4. Urdu Translation Rules:**
-- 95% English technical term preservation target
-- 100% code snippet preservation
-- Hybrid format: "Forward kinematics (آگے کی حرکیات)..."
-- Measurable quality criteria defined
+**Q4: Auth security boundaries** → Answer: Better Auth issues JWT/session token, FastAPI validates on each request
+- Added FR-022 (token issuance), FR-023 (token validation), FR-024 (401 response)
+- Added edge case for token expiration
+- Updated Dependencies to include FastAPI token validation middleware
+- Updated Assumptions about Better Auth JWT compatibility
 
-**5. User Toggle Controls:**
-- "Show Original Content" button for personalization
-- "Show Original English" button for translation
-- Session storage for preferences
-- Translation never persists (refresh → English)
+**Q5: OpenRouter rate limits** → Answer: Research during planning phase, design with graceful degradation
+- Added to Assumptions that exact limits will be researched during planning
+- Updated Dependencies to note research requirement
+- Updated Risks to include planning-phase research task
 
-**6. Permission Model:**
-- Buttons completely hidden for anonymous users (not disabled)
-- Strict API authentication (401 errors)
-- No confusing disabled UI elements
-
-**7. Skills Separation:**
-- Distinct AI skills: personalization-skill, translation-skill separate from RAG
-- Shared LLM infrastructure only (OpenRouter/DeepSeek)
-- No logic duplication, different prompts and contexts
-
-Updated specification with 5 new functional requirements (FR-044 to FR-048) and 4 new assumptions (A-009 to A-012).
+All clarifications integrated directly into spec with new Clarifications section (Session 2025-12-17).
 
 ## Outcome
 
-- ✅ Impact: All ambiguities removed, spec ready for implementation planning
-- 🧪 Tests: 48 functional requirements now explicitly testable
-- 📁 Files: clarifications.md (16 sections, 7 decisions), spec.md (updated requirements), checklist (updated)
-- 🔁 Next prompts: /sp.plan (proceed to architecture design)
-- 🧠 Reflection: Clarifications transformed vague requirements into explicit, measurable decisions. Caching strategy, translation rules, and permission boundaries now unambiguous.
+- ✅ Impact: Spec is now implementation-ready with all critical ambiguities resolved; 5 questions answered across data model, architecture, security, and operational domains
+- 🧪 Tests: Spec validation passed - no contradictions, no unresolved placeholders, all sections consistent
+- 📁 Files: Updated spec.md with Clarifications section, 4 new FRs (FR-021 to FR-024), updated entities, edge cases, assumptions, dependencies, and risks
+- 🔁 Next prompts: `/sp.plan` to begin implementation planning with fully clarified requirements
+- 🧠 Reflection: Sequential questioning with immediate integration kept spec coherent; recommending best-practice options helped user make quick decisions; deferring OpenRouter limit research to planning phase appropriately balances spec clarity with practical constraints
 
 ## Evaluation notes (flywheel)
 
-- Failure modes observed: None - all clarifications successfully integrated
-- Graders run and results (PASS/FAIL):
-  - Signup Questions: PASS (explicit UI and storage format)
-  - Architecture: PASS (clear separation of personalization vs RAG)
-  - Caching: PASS (Redis strategy with TTL and invalidation rules)
-  - Translation: PASS (95% term preservation, hybrid format)
-  - Permissions: PASS (hidden buttons, API enforcement)
-- Prompt variant (if applicable): Standard /sp.clarify workflow
-- Next experiment (smallest change to try): /sp.plan to design database schema and API contracts
+- Failure modes observed: None; all 5 questions answered smoothly with user selecting recommended options or making direct choices
+- Graders run and results (PASS/FAIL): Spec validation - PASS (no contradictions, all clarifications integrated, consistent terminology)
+- Prompt variant (if applicable): Standard /sp.clarify workflow with 5 sequential questions from user-provided list
+- Next experiment (smallest change to try): For future clarifications, consider grouping related questions (e.g., all auth questions together) to provide more context for decision-making

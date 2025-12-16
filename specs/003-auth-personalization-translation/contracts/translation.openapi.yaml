@@ -1,209 +1,154 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
-  title: Content Translation API
+  title: Translation API
+  description: Chapter content translation to Urdu (Focus Mode)
   version: 1.0.0
-  description: Chapter translation to Urdu with technical term preservation
-  contact:
-    name: Translation Team
-    email: translation@example.com
 
 servers:
-  - url: http://localhost:8000
+  - url: http://localhost:8000/api
     description: Development server
-  - url: https://api.your-site.com
-    description: Production server
 
-security:
-  - cookieAuth: []
+tags:
+  - name: Translation
+    description: Content translation operations
 
 paths:
-  /content/translate:
+  /translate:
     post:
-      summary: Translate chapter to Urdu
-      description: Generate Urdu translation preserving 95% technical terms and 100% code (FR-022, FR-024, FR-025, FR-026). Not cached - generated on-demand (FR-029).
-      operationId: translateChapter
       tags:
         - Translation
+      summary: Translate chapter to Urdu
+      description: |
+        Translate chapter content to Urdu with Focus Mode (technical faithfulness).
+
+        **Focus Mode Requirements**:
+        - Faithful technical translation only
+        - No extra commentary or explanations
+        - Technical terms preserved in English or transliterated
+        - Code snippets preserved unchanged
+
+        **Performance**: Must complete in <15 seconds for chapters up to 5000 words (SC-003)
+      operationId: translateChapter
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TranslationRequest'
-            examples:
-              basicTranslation:
-                summary: Translate Chapter 1 to Urdu
-                value:
-                  chapter_id: "module-1-chapter-1"
-                  chapter_markdown: "# Chapter 1: Introduction to Humanoid Robotics\n\n## What is a Humanoid Robot?\n\nA humanoid robot..."
-                  target_language: "urdu"
+              $ref: '#/components/schemas/TranslateRequest'
       responses:
         '200':
-          description: Translation generated successfully
+          description: Chapter translated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TranslationResponse'
-        '400':
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              examples:
-                emptyChapter:
-                  summary: Empty chapter markdown
-                  value:
-                    error: "Chapter markdown cannot be empty"
-                unsupportedLanguage:
-                  summary: Unsupported target language
-                  value:
-                    error: "Unsupported language: 'spanish'. Currently supported: urdu"
-                chapterTooLong:
-                  summary: Chapter exceeds token limit
-                  value:
-                    error: "Chapter exceeds 8000 token limit. Please split into sections."
+                $ref: '#/components/schemas/TranslateResponse'
         '401':
-          description: Not authenticated (FR-023 - button hidden, API enforces auth)
+          description: Unauthorized (invalid or missing JWT token)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Authentication required to translate content"
-        '422':
-          description: Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ValidationError'
-        '504':
-          description: Translation timeout (>15 seconds per FR-030)
+        '400':
+          description: Bad request (invalid input)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                error: "Translation request timed out after 15 seconds. Please try again or split chapter into sections."
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   securitySchemes:
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: auth_session
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 
   schemas:
-    TranslationRequest:
+    TranslateRequest:
       type: object
       required:
-        - chapter_id
-        - chapter_markdown
-        - target_language
+        - chapterId
+        - chapterContent
+        - targetLanguage
+        - mode
       properties:
-        chapter_id:
+        chapterId:
           type: string
-          pattern: '^module-[0-9]+-chapter-[0-9]+$'
-          description: Chapter identifier (for analytics logging per FR-035)
-          example: "module-1-chapter-1"
-        chapter_markdown:
+          example: "module-1-chapter-3"
+        chapterContent:
           type: string
-          minLength: 100
-          description: Full chapter content in markdown format
-          example: "# Chapter 1: Introduction\n\nForward kinematics calculates..."
-        target_language:
+          example: "# Chapter 3: Robot Kinematics\n\n## Introduction\n..."
+          description: Original English markdown content
+        targetLanguage:
           type: string
-          enum: [urdu]
-          description: Target language (currently only Urdu supported)
-          example: "urdu"
+          enum: ["ur"]
+          example: "ur"
+          description: Target language (ISO 639-1 code, currently only Urdu supported)
+        mode:
+          type: string
+          enum: ["focus"]
+          example: "focus"
+          description: Translation mode (currently only Focus Mode supported)
 
-    TranslationResponse:
+    TranslateResponse:
       type: object
       properties:
-        chapter_id:
-          type: string
-          example: "module-1-chapter-1"
-        translated_markdown:
-          type: string
-          description: |
-            Translated chapter content with:
-            - 95% English technical terms preserved (FR-025)
-            - 100% code snippets unchanged (FR-026)
-            - Hybrid format: "Forward kinematics (آگے کی حرکیات)..." (FR-048)
-          example: |
-            # باب 1: Humanoid Robotics کا تعارف
-
-            ## Humanoid Robot کیا ہے؟
-
-            Humanoid robot ایک ایسا robot ہے جو انسانی جسم کی شکل رکھتا ہے...
-
-            ```python
-            # Code blocks remain unchanged
-            def forward_kinematics(theta):
-                return transformation_matrix(theta)
-            ```
-        source_language:
-          type: string
-          example: "english"
-        target_language:
-          type: string
-          example: "urdu"
-        translated_at:
-          type: string
-          format: date-time
-          description: When translation was generated (not cached per FR-029)
-          example: "2025-12-16T11:15:00Z"
-        translation_quality:
+        success:
+          type: boolean
+          example: true
+        data:
           type: object
-          description: Quality metrics for translation (FR-048)
           properties:
-            technical_terms_preserved:
-              type: integer
-              description: Number of technical terms preserved
-              example: 42
-            total_technical_terms:
-              type: integer
-              description: Total technical terms in original
-              example: 44
-            preservation_rate:
-              type: number
-              format: float
-              description: Percentage of terms preserved (target: 95%)
-              example: 0.95
-            code_blocks_unchanged:
-              type: boolean
-              description: Whether all code blocks are identical (target: 100%)
-              example: true
-            hybrid_format_instances:
-              type: integer
-              description: Number of hybrid "term (اردو)" instances
-              example: 15
-        warning:
-          type: string
-          nullable: true
-          description: Warning if quality thresholds not met
-          example: "Technical term preservation below 95% threshold (actual: 92%). Review recommended."
+            chapterId:
+              type: string
+              example: "module-1-chapter-3"
+            translatedContent:
+              type: string
+              example: "# باب 3: روبوٹ کی Kinematics\n\n## تعارف\n..."
+              description: Urdu markdown content
+            metadata:
+              type: object
+              properties:
+                llmModel:
+                  type: string
+                  example: "google/gemini-2.0-flash-exp:free"
+                tokenUsage:
+                  type: object
+                  properties:
+                    inputTokens:
+                      type: integer
+                      example: 2500
+                    outputTokens:
+                      type: integer
+                      example: 3000
+                processingTimeMs:
+                  type: integer
+                  example: 12000
+                preservedTerms:
+                  type: array
+                  items:
+                    type: string
+                  example: ["kinematics", "forward kinematics", "Jacobian", "TCP"]
+                  description: Technical terms preserved in English
 
     ErrorResponse:
       type: object
       properties:
         error:
           type: string
-          description: Human-readable error message
-
-    ValidationError:
-      type: object
-      properties:
-        detail:
-          type: array
-          items:
-            type: object
-            properties:
-              loc:
-                type: array
-                items:
-                  type: string
-              msg:
-                type: string
-              type:
-                type: string
+        details:
+          type: object
+          additionalProperties: true

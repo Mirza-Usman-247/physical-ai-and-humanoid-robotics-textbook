@@ -1,110 +1,147 @@
-# Implementation Plan: Auth, Personalization & Translation Integration
+# Implementation Plan: Authentication, Personalization, and Translation Integration
 
-**Branch**: `003-auth-personalization-translation` | **Date**: 2025-12-16 | **Spec**: [spec.md](./spec.md)
+**Branch**: `003-auth-personalization-translation` | **Date**: 2025-12-17 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `/specs/003-auth-personalization-translation/spec.md`
 
 ## Summary
 
-Extend the existing RAG-enabled Docusaurus textbook platform with authentication, content personalization, and Urdu translation capabilities. Users create accounts with background profiles (software skills, hardware access), then can personalize chapter content to their skill level or translate chapters to Urdu. All features use reusable AI skills and integrate with existing FastAPI backend without breaking the RAG chatbot.
+Extend the existing Physical AI & Humanoid Robotics Docusaurus platform with user authentication, personalized content rendering based on user skill profiles, and Urdu translation capabilities. The system integrates Better Auth for authentication, Neon Serverless Postgres for user profile storage, OpenRouter free LLM models for content transformations, and enhances the existing RAG chatbot to respect personalized/translated context sent from the frontend.
 
-**Technical Approach**: Implement Better Auth for session-based authentication, store user profiles in Neon Postgres (JSONB for skills, ENUM for hardware), develop four reusable AI skills (user-profile, personalization, translation, content-adapter), cache personalized content in Redis (30-min TTL with profile hash), and add React components to Docusaurus theme for auth UI and chapter buttons.
+**Technical Approach**:
+- **Authentication**: Better Auth library integrated into Docusaurus React components, JWT tokens validated by FastAPI backend
+- **Personalization**: Frontend-initiated LLM transformation using user profile data, stored in browser session
+- **Translation**: Frontend-initiated Urdu translation with Focus Mode (technical faithfulness), stored in browser session
+- **RAG Integration**: Frontend sends transformed content chunks with each chatbot query (stateless chatbot approach)
 
 ## Technical Context
 
 **Language/Version**:
-- Backend: Python 3.11+ (FastAPI)
-- Frontend: TypeScript 5.x + React 18.x (Docusaurus 3.x)
-- Database: PostgreSQL 15+ (Neon Serverless)
+- **Frontend**: TypeScript 5.x + React 18 (Docusaurus 3.x)
+- **Backend**: Python 3.11+ (FastAPI)
 
 **Primary Dependencies**:
-- Backend: FastAPI 0.104+, Better Auth (Python adapter), psycopg3, redis-py, openrouter-sdk
-- Frontend: Docusaurus 3.x, @docusaurus/theme-classic, React 18.x
-- AI: OpenRouter API (DeepSeek free model)
-- Database: Neon Serverless Postgres
-- Cache: Redis 7.x (shared with RAG chatbot)
+- **Frontend**: Better Auth (auth library), Docusaurus 3.x, React 18, TypeScript
+- **Backend**: FastAPI, SQLAlchemy, Alembic (migrations), python-jose (JWT), passlib (password hashing), Neon Serverless Postgres driver
+- **LLM**: OpenRouter API (free tier models)
+- **Existing**: RAG orchestrator (backend/src/services/rag_orchestrator.py)
 
 **Storage**:
-- Neon Postgres tables: users, profiles, preferences, translation_logs (optional)
-- Redis cache: Personalized content with 30-min TTL
-- File system: Chapter markdown files (unchanged)
+- **User Profiles**: Neon Serverless Postgres (persistent storage via SQLAlchemy ORM)
+- **Personalized/Translated Content**: Browser session storage (IndexedDB or SessionStorage, no backend persistence)
+- **Authentication**: JWT tokens (Better Auth issues, FastAPI validates)
 
 **Testing**:
-- Backend: pytest with fixtures for DB and Redis
-- Frontend: Jest + React Testing Library
-- Integration: Playwright for E2E auth flows
-- Contract: OpenAPI schema validation
+- **Frontend**: Jest + React Testing Library
+- **Backend**: pytest (existing test structure in backend/tests/)
+- **Integration**: End-to-end tests for auth flow, personalization, translation
 
 **Target Platform**:
-- Backend: Linux server (deployment), Windows/macOS (development)
-- Frontend: Web browsers (Chrome, Firefox, Safari, Edge)
-- Database: Neon Serverless (cloud Postgres)
+- **Frontend**: Modern browsers (Chrome, Firefox, Safari, Edge - latest 2 versions)
+- **Backend**: Linux server (Docker container deployment)
+- **Database**: Neon Serverless Postgres (cloud-hosted)
 
-**Project Type**: Web application (FastAPI backend + Docusaurus frontend)
+**Project Type**: Web application (separate frontend/backend)
 
 **Performance Goals**:
-- Personalization: <10 seconds (FR-020), <100ms cached
-- Translation: <15 seconds (FR-030)
-- Auth endpoints: <200ms p95
-- Cache hit rate: >80% for personalization
-- Concurrent users: 500 without degradation (SC-005)
+- User registration completes in under 3 minutes (SC-001)
+- Personalized chapter generation completes in under 10 seconds for chapters up to 5000 words (SC-002)
+- Chapter translation to Urdu completes in under 15 seconds for chapters up to 5000 words (SC-003)
+- RAG chatbot responds within 3 seconds when using personalized or translated context (SC-006)
+- Authentication success rate exceeds 99% for valid credentials (SC-010)
 
 **Constraints**:
-- Must not break existing RAG chatbot functionality (SC-009)
-- Skills must be framework-agnostic and reusable (FR-042)
-- Translation never persists to database (FR-029)
-- Buttons hidden for anonymous users (FR-015, FR-023)
-- Redis shared with RAG chatbot (namespace isolation)
+- Session-only storage for personalized/translated content (regenerate on new session)
+- OpenRouter free tier rate limits (exact limits to be researched in Phase 0)
+- Cost per personalization/translation request remains under $0.01 (SC-012)
+- JWT token validation required on all protected API endpoints
+- Frontend sends transformed content chunks with each RAG chatbot query (stateless)
+- Only one content transformation (personalization OR translation) active at a time per chapter
 
 **Scale/Scope**:
-- Users: ~10,000 in first year (A-002)
-- Chapters: All existing textbook chapters (~21 chapters per constitution)
-- Personalization cache: ~1,000 cached variations at peak
-- Translation: On-demand only (no pre-generation)
+- Expected users: 100 concurrent users without degradation (SC-009)
+- Database: Single Neon Postgres instance with connection pooling
+- Content transformation: Per-chapter basis (not entire book)
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-### 1. 100% Spec-Driven Development
-- ✅ PASS: Feature has complete spec.md with 48 FRs and 7 clarifications
-- ✅ PASS: This plan.md follows `/sp.specify` → `/sp.plan` workflow
-- ✅ PASS: All requirements traceable to spec (FR-001 to FR-048)
+### Mandatory Principles Compliance
 
-### 2. Technical Accuracy Only
-- ✅ PASS: Authentication uses industry-standard Better Auth library
-- ✅ PASS: Caching strategy based on proven Redis patterns (TTL + hash invalidation)
-- ✅ PASS: Database design follows normalization (users, profiles, preferences)
-- ⚠️ WATCH: Translation quality (95% term preservation) requires empirical validation in Phase 2
+✅ **100% Spec-Driven Development**: This plan follows `/sp.specify` → `/sp.plan` → `/sp.tasks` workflow. All features match approved specification exactly.
 
-### 3. Deterministic, Reproducible Output
-- ✅ PASS: Better Auth provides deterministic session management
-- ✅ PASS: Redis caching is deterministic (same profile hash → same cache key)
-- ⚠️ WATCH: LLM outputs (personalization, translation) are non-deterministic by nature
-  - **Mitigation**: Cache results to ensure same user sees consistent content within 30-min window
-  - **Justification**: AI-generated personalization is core feature value; caching mitigates non-determinism
+✅ **Technical Accuracy Only**: All authentication patterns, JWT flows, and database schemas will be verified against industry standards and documented with citations.
 
-### 4. Single Source of Truth (SSOT)
-- ✅ PASS: User profiles in Neon Postgres (profiles table)
-- ✅ PASS: Chapter markdown files remain canonical source
-- ✅ PASS: Personalized content cached but never overwrites originals
-- ✅ PASS: Translation is temporary (session-only, no persistence)
+✅ **Deterministic, Reproducible Output**: All dependencies version-pinned (package.json, requirements.txt), database migrations versioned with Alembic, build processes documented.
 
-### 5. Runnable, Version-Pinned Code Only
-- ✅ PASS: Dependencies will be pinned in requirements.txt and package.json
-- ✅ PASS: Code examples will include version constraints
-- ✅ PASS: No hardware safety concerns (web application only)
+✅ **Single Source of Truth (SSOT)**:
+- Specifications: `specs/003-auth-personalization-translation/`
+- Frontend code: `src/components/`, `src/api/`, `src/hooks/`
+- Backend code: `backend/src/api/routes/`, `backend/src/db/models/`
+- Migrations: `backend/src/db/migrations/versions/`
 
-### 6. Zero Hallucinations
-- ✅ PASS: All technical decisions cited from spec.md and clarifications
-- ✅ PASS: Better Auth, FastAPI, Redis patterns are documented standards
-- ⚠️ WATCH: LLM-generated personalization/translation content requires quality gates
-  - **Mitigation**: FR-048 defines measurable quality metrics (95% term preservation, 100% code preservation)
+✅ **Runnable, Version-Pinned Code Only**: All code will include version constraints, validation tests, and safety notes for API key handling.
 
-**Constitution Compliance**: ✅ PASS with 2 WATCH items (LLM non-determinism and quality validation)
+✅ **Zero Hallucinations**: All technical claims (JWT validation, OAuth patterns, database schema design) will be supported by official documentation citations (Better Auth docs, FastAPI docs, JWT.io, Neon docs).
 
-**Justifications**:
-- **LLM Non-Determinism**: Core feature requirement (personalization and translation). Mitigated with caching and quality metrics.
-- **Translation Quality Validation**: Requires empirical testing with sample chapters. Phase 2 will include automated tests for term preservation.
+### Book Structure Compliance
+
+⚠️ **Not Applicable**: This is an infrastructure feature (authentication, personalization platform), not a book chapter. Does not impact 6-module, 21-chapter structure.
+
+### Documentation & Site Rules
+
+✅ **Docusaurus Page Requirements**: New components will integrate with existing Docusaurus theme without adding new pages. No impact on metadata, link integrity, or media optimization.
+
+✅ **Performance**: Session storage and JWT validation add minimal latency (<100ms). OpenRouter API calls handled asynchronously with loading indicators.
+
+✅ **Build Quality**: No Docusaurus build warnings or errors expected. TypeScript strict mode enforced.
+
+### Workflow & Artifacts Compliance
+
+✅ **Mandatory Workflow**: Currently in `/sp.plan` phase. Next: `/sp.tasks` for granular task breakdown.
+
+✅ **Required Artifacts**:
+- `specs/003-auth-personalization-translation/spec.md` ✅ (created)
+- `specs/003-auth-personalization-translation/plan.md` ✅ (this file)
+- `specs/003-auth-personalization-translation/research.md` ⏳ (Phase 0 output)
+- `specs/003-auth-personalization-translation/data-model.md` ⏳ (Phase 1 output)
+- `specs/003-auth-personalization-translation/quickstart.md` ⏳ (Phase 1 output)
+- `specs/003-auth-personalization-translation/contracts/` ⏳ (Phase 1 output)
+- `specs/003-auth-personalization-translation/tasks.md` ⏳ (`/sp.tasks` command)
+
+✅ **Code Example Requirements**: All authentication flows, API endpoints, and frontend components will include validation tests and inline comments explaining security reasoning.
+
+### ADR Policy
+
+📋 **ADR Trigger Test** (run after Phase 1):
+
+**Potential architecturally significant decisions**:
+1. **Better Auth vs custom auth implementation** (framework choice)
+2. **Session-only vs database-persisted personalized content** (storage architecture)
+3. **Stateless RAG chatbot with frontend-sent context vs backend context management** (integration pattern)
+4. **OpenRouter vs self-hosted LLM for personalization/translation** (cost/performance tradeoff)
+
+**Evaluation (after Phase 1)**:
+- All decisions have long-term structural consequences? ✅
+- Multiple viable options considered? ✅
+- Cross-cutting influence on system design? ✅
+
+**Recommendation**: Create ADRs for decisions #1, #2, #3 (decision #4 specified by requirements, not a choice).
+
+### Quality Gates
+
+All gates MUST pass before deployment:
+
+1. ✅ **Docusaurus Build**: `npm run build` = PASS (no errors)
+2. ✅ **Broken Links**: Link checker = PASS
+3. ✅ **Spell Check**: Spell check = PASS
+4. ✅ **Accessibility**: WCAG AA compliance = PASS (auth forms must be keyboard-accessible, screen-reader compatible)
+5. ✅ **Technical Accuracy**: JWT validation, password hashing, database schema reviewed against security best practices
+6. ✅ **Code Tests**: All API endpoints, auth flows, personalization/translation tested = PASS
+7. ✅ **Performance**: Lighthouse score ≥ 90 (auth flows must not degrade page performance)
+8. ✅ **Completeness**: No TODO, TBD, or placeholder content
+
+**Constitution Check Status**: ✅ **PASS** - Proceed to Phase 0 research
 
 ## Project Structure
 
@@ -112,261 +149,113 @@ Extend the existing RAG-enabled Docusaurus textbook platform with authentication
 
 ```text
 specs/003-auth-personalization-translation/
-├── plan.md              # This file (/sp.plan command output)
-├── spec.md              # Feature specification (completed)
-├── clarifications.md    # [REMOVED] - integrated into spec.md
-├── research.md          # Phase 0 output (to be created)
-├── data-model.md        # Phase 1 output (to be created)
-├── quickstart.md        # Phase 1 output (to be created)
-├── contracts/           # Phase 1 output (to be created)
+├── spec.md              # Feature specification (✅ created)
+├── plan.md              # This file (✅ created)
+├── research.md          # Phase 0 output (research findings)
+├── data-model.md        # Phase 1 output (database schema, entities)
+├── quickstart.md        # Phase 1 output (setup instructions)
+├── contracts/           # Phase 1 output (API contracts)
 │   ├── auth.openapi.yaml
-│   ├── profile.openapi.yaml
 │   ├── personalization.openapi.yaml
-│   └── translation.openapi.yaml
+│   ├── translation.openapi.yaml
+│   └── profile.openapi.yaml
 ├── checklists/
-│   └── requirements.md  # Quality validation (completed)
-└── tasks.md             # Phase 2 output (/sp.tasks command - NOT created by /sp.plan)
+│   └── requirements.md  # Spec quality checklist (✅ created)
+└── tasks.md             # Phase 2 output (/sp.tasks command)
 ```
 
 ### Source Code (repository root)
 
+**Structure Decision**: Web application with separate frontend (Docusaurus) and backend (FastAPI). This matches the existing project structure with `src/` for frontend and `backend/` for backend services.
+
 ```text
-# Web application structure (FastAPI backend + Docusaurus frontend)
+# Frontend (Docusaurus React components)
+src/
+├── components/
+│   ├── Auth/
+│   │   ├── SignupForm.tsx           # User registration form
+│   │   ├── SigninForm.tsx           # User login form
+│   │   ├── AuthProvider.tsx         # Better Auth context provider
+│   │   └── ProtectedRoute.tsx       # Route guard component
+│   ├── ChapterActions/
+│   │   ├── PersonalizeButton.tsx    # "Personalize Chapter" button
+│   │   ├── TranslateButton.tsx      # "Translate to Urdu" button
+│   │   └── ContentTransformer.tsx   # Handles transformation UI/logic
+│   └── RAGChatbot/                  # Existing RAG chatbot component
+│       └── ChatInterface.tsx        # (modify to send transformed content)
+├── hooks/
+│   ├── useAuth.ts                   # Auth state management hook
+│   ├── usePersonalization.ts        # Personalization state/logic hook
+│   └── useTranslation.ts            # Translation state/logic hook
+├── api/
+│   ├── auth.ts                      # Auth API client (Better Auth integration)
+│   ├── personalization.ts           # Personalization API client
+│   ├── translation.ts               # Translation API client
+│   └── rag.ts                       # RAG API client (modify to send context)
+├── types/
+│   ├── auth.ts                      # Auth types (User, UserProfile, Token)
+│   ├── personalization.ts           # Personalization types
+│   └── translation.ts               # Translation types
+├── theme/
+│   └── Root.tsx                     # Docusaurus root wrapper (inject AuthProvider)
+└── plugins/
+    └── sessionStorage.ts            # Session storage utility for transformed content
 
-backend/                      # FastAPI application (NEW)
+# Backend (FastAPI)
+backend/
 ├── src/
-│   ├── models/              # Database models (SQLAlchemy/psycopg3)
-│   │   ├── user.py         # User authentication model
-│   │   ├── profile.py      # User profile (software/hardware background)
-│   │   └── preference.py   # Personalization preferences
-│   ├── services/           # Business logic layer
-│   │   ├── auth_service.py       # Better Auth integration
-│   │   ├── profile_service.py    # Profile CRUD operations
-│   │   ├── personalization_service.py  # Personalization orchestration
-│   │   └── translation_service.py      # Translation orchestration
-│   ├── api/                # FastAPI routes
-│   │   ├── auth_routes.py        # /auth/signup, /auth/signin, /auth/logout
-│   │   ├── profile_routes.py     # /user/profile (GET/PUT)
-│   │   ├── personalization_routes.py  # /content/personalize
-│   │   └── translation_routes.py      # /content/translate
-│   ├── skills/             # Reusable AI skills (NEW)
-│   │   ├── user_profile_skill.py      # Read/write user profile context
-│   │   ├── personalization_skill.py   # LLM-based chapter personalization
-│   │   ├── translation_skill.py       # LLM-based Urdu translation
-│   │   └── content_adapter_skill.py   # Format and sanitize LLM outputs
-│   ├── cache/              # Redis cache abstraction
-│   │   └── personalization_cache.py  # Cache layer with TTL and invalidation
-│   ├── config.py           # Environment configuration
-│   └── main.py             # FastAPI app entry point
-├── tests/
-│   ├── unit/              # Unit tests for services and skills
-│   ├── integration/       # Integration tests for DB and Redis
-│   └── contract/          # OpenAPI contract validation
-├── alembic/               # Database migrations
-│   └── versions/          # Migration scripts
-├── requirements.txt       # Python dependencies (pinned)
-└── .env.example           # Environment variables template
+│   ├── api/
+│   │   ├── routes/
+│   │   │   ├── auth.py              # Auth endpoints (signup, signin, token validation)
+│   │   │   ├── profile.py           # User profile endpoints (get, update)
+│   │   │   ├── personalization.py   # Personalization endpoint (/personalize)
+│   │   │   ├── translation.py       # Translation endpoint (/translate)
+│   │   │   └── chat.py              # (modify to validate JWT, accept context)
+│   │   ├── middleware/
+│   │   │   ├── auth.py              # JWT validation middleware
+│   │   │   └── rate_limit.py        # (existing, may extend for auth)
+│   │   └── models/
+│   │       ├── request.py           # (extend with auth, personalization, translation)
+│   │       └── response.py          # (extend with auth, personalization, translation)
+│   ├── db/
+│   │   ├── models.py                # (extend with User, UserProfile models)
+│   │   ├── connection.py            # (existing Neon Postgres connection)
+│   │   └── migrations/
+│   │       └── versions/
+│   │           └── YYYYMMDD_HHMM_add_user_auth_tables.py
+│   ├── services/
+│   │   ├── auth_service.py          # Auth business logic (password hashing, JWT)
+│   │   ├── profile_service.py       # User profile business logic
+│   │   ├── personalization_service.py # Personalization LLM orchestration
+│   │   ├── translation_service.py   # Translation LLM orchestration
+│   │   └── rag_orchestrator.py      # (existing, modify to accept context)
+│   ├── utils/
+│   │   ├── jwt.py                   # JWT utilities (encode, decode, verify)
+│   │   ├── password.py              # Password hashing utilities
+│   │   └── openrouter.py            # OpenRouter API client
+│   └── config.py                    # (extend with auth, OpenRouter config)
+└── tests/
+    ├── api/
+    │   ├── test_auth.py
+    │   ├── test_profile.py
+    │   ├── test_personalization.py
+    │   └── test_translation.py
+    ├── services/
+    │   ├── test_auth_service.py
+    │   ├── test_personalization_service.py
+    │   └── test_translation_service.py
+    └── integration/
+        └── test_auth_flow.py
 
-frontend/                  # Docusaurus site (EXISTING - EXTEND)
-├── src/
-│   ├── components/
-│   │   ├── Auth/          # Authentication UI components (NEW)
-│   │   │   ├── SignupForm.tsx      # Signup with questionnaire
-│   │   │   ├── SigninForm.tsx      # Signin form
-│   │   │   ├── ProfileSettings.tsx # Profile update page
-│   │   │   └── AuthContext.tsx     # React context for auth state
-│   │   ├── Chapter/       # Chapter enhancements (NEW)
-│   │   │   ├── PersonalizeButton.tsx    # "Personalize Content" button
-│   │   │   ├── TranslateButton.tsx      # "Translate to Urdu" button
-│   │   │   ├── ContentToggle.tsx        # "Show Original" toggle
-│   │   │   └── ChapterWrapper.tsx       # Wraps chapter with buttons
-│   │   └── RAGChatbot/    # Existing RAG chatbot (UNCHANGED)
-│   │       └── ...
-│   ├── theme/             # Docusaurus theme customization (EXTEND)
-│   │   └── Root.tsx       # Add AuthProvider wrapper (EXISTING)
-│   └── services/          # Frontend API clients (NEW)
-│       ├── authService.ts           # Auth API calls
-│       ├── profileService.ts        # Profile API calls
-│       ├── personalizationService.ts # Personalization API calls
-│       └── translationService.ts     # Translation API calls
-├── tests/
-│   └── e2e/               # Playwright E2E tests (NEW)
-│       ├── auth.spec.ts          # Signup/signin flows
-│       ├── personalization.spec.ts # Personalize chapter flow
-│       └── translation.spec.ts    # Translate chapter flow
-├── package.json           # Node dependencies (pinned)
-└── .env.example           # Frontend environment variables
-
-.claude/skills/            # Claude Code skills metadata (NEW)
-├── user-profile-skill/
-│   └── skill.yaml
-├── personalization-skill/
-│   └── skill.yaml
-├── translation-skill/
-│   └── skill.yaml
-└── content-adapter-skill/
-    └── skill.yaml
-
-history/prompts/003-auth-personalization-translation/  # Prompt History Records
-└── [PHR files for this feature]
+# Database Migrations
+backend/src/db/migrations/versions/
+└── YYYYMMDD_HHMM_add_user_auth_tables.py  # Alembic migration
 ```
-
-**Structure Decision**: Web application with separate backend and frontend directories. Backend is new (FastAPI), frontend extends existing Docusaurus. Skills are framework-agnostic and stored in `.claude/skills/` for reusability. RAG chatbot components remain unchanged to satisfy SC-009 (zero breaking changes).
 
 ## Complexity Tracking
 
-> **No violations requiring justification**
-
-All complexity is justified by functional requirements:
-- Better Auth library required for FR-001 to FR-007 (authentication)
-- Redis caching required for FR-044 (30-min TTL performance)
-- JSONB storage required for FR-011 (flexible multi-select software skills)
-- Four AI skills required for FR-036 to FR-039 (reusable, framework-agnostic design)
-
-## Phase 0: Research & Architecture Decisions
-
-**Status**: To be executed
-**Output**: `research.md`
-
-### Research Tasks
-
-1. **Better Auth Python Integration**
-   - Research: How to integrate Better Auth with FastAPI (session-based, not JWT)
-   - Decision needed: Python adapter library or custom integration
-   - Alternatives: FastAPI-Users, Authlib, custom session management
-   - Research output: Installation steps, session storage, middleware configuration
-
-2. **Neon Postgres Schema Design**
-   - Research: Best practices for user profile JSONB schemas
-   - Research: ENUM vs. string types for hardware access field
-   - Research: Foreign key constraints and cascade delete policies
-   - Decision needed: Normalization level (3NF vs. denormalization for performance)
-   - Research output: Complete DDL with indexes and constraints
-
-3. **Redis Caching Strategy**
-   - Research: Redis key naming conventions for multi-tenant caching
-   - Research: Cache invalidation patterns (TTL vs. manual invalidation)
-   - Research: Profile hash algorithms (MD5 vs. SHA256 vs. custom)
-   - Decision needed: Namespace isolation from RAG chatbot cache
-   - Research output: Cache key format, TTL values, invalidation logic
-
-4. **OpenRouter DeepSeek Integration**
-   - Research: DeepSeek free model capabilities (context window, Urdu support)
-   - Research: Rate limits and token budgets for free tier
-   - Research: Prompt engineering for technical term preservation (95% target)
-   - Decision needed: Fallback model if DeepSeek unavailable
-   - Research output: API configuration, prompt templates, error handling
-
-5. **Docusaurus Theme Customization**
-   - Research: How to inject React components at chapter start (before content)
-   - Research: Theme swizzling vs. plugin approach
-   - Research: Session storage vs. cookies for view preferences
-   - Decision needed: Component lifecycle and state management
-   - Research output: Implementation pattern, code examples
-
-6. **Urdu Translation Quality Assurance**
-   - Research: Automated testing for technical term preservation
-   - Research: Regex patterns for detecting English terms in Urdu text
-   - Research: Hybrid format validation ("term (اردو)...")
-   - Decision needed: Manual review workflow or automated gates
-   - Research output: Quality validation script, acceptance criteria
-
-7. **Security and Session Management**
-   - Research: CSRF protection for FastAPI endpoints
-   - Research: Session timeout and refresh token strategies
-   - Research: SQL injection prevention with psycopg3 parameterized queries
-   - Decision needed: Session storage (Redis vs. database vs. signed cookies)
-   - Research output: Security checklist, middleware configuration
-
-**Research Deliverable**: `research.md` with all decisions documented, alternatives evaluated, and implementation guidance provided.
-
-## Phase 1: Design & Contracts
-
-**Status**: To be executed after Phase 0
-**Outputs**: `data-model.md`, `contracts/`, `quickstart.md`
-
-### 1. Data Model Design (`data-model.md`)
-
-**Source**: Entities from spec.md (User, Profile, Preference, TranslationLog)
-
-**Output**:
-- Entity-relationship diagrams
-- Table schemas with DDL
-- Field validation rules
-- Indexes and constraints
-- State transitions (user signup → profile creation flow)
-
-### 2. API Contracts (`contracts/`)
-
-**Method**: Extract from functional requirements FR-001 to FR-043
-
-**Endpoints to define**:
-
-**Authentication** (auth.openapi.yaml):
-- `POST /auth/signup` - FR-001, FR-002
-- `POST /auth/signin` - FR-003
-- `POST /auth/logout` - FR-007
-- `GET /auth/session` - Session validation
-
-**Profile Management** (profile.openapi.yaml):
-- `GET /user/profile` - FR-013
-- `PUT /user/profile` - FR-013
-- `POST /user/questionnaire` - FR-008, FR-009, FR-010
-
-**Content Personalization** (personalization.openapi.yaml):
-- `POST /content/personalize` - FR-014, FR-016, FR-017
-- `GET /content/personalize/{userId}/{chapterId}` - Cached retrieval
-- `DELETE /content/personalize/cache/{userId}` - Cache invalidation (FR-047)
-
-**Content Translation** (translation.openapi.yaml):
-- `POST /content/translate` - FR-022, FR-024, FR-025
-- Note: No GET endpoint (translation never persists per FR-029)
-
-**Contract format**: OpenAPI 3.1 with:
-- Request/response schemas
-- Error responses (401, 403, 404, 422, 500)
-- Security requirements (session cookies)
-- Rate limits and timeouts
-
-### 3. Quickstart Guide (`quickstart.md`)
-
-**Audience**: Developers setting up local environment
-
-**Contents**:
-1. Prerequisites (Python 3.11+, Node 18+, Redis, Neon Postgres credentials)
-2. Backend setup (install deps, configure .env, run migrations, start server)
-3. Frontend setup (install deps, configure .env, start dev server)
-4. Verification steps (auth flow, personalization, translation)
-5. Troubleshooting (common errors, database connection issues)
-
-### 4. Agent Context Update
-
-**Action**: Run `.specify/scripts/powershell/update-agent-context.ps1 -AgentType claude`
-
-**Purpose**:
-- Update `.claude/` configuration with new technologies
-- Add Better Auth, Neon Postgres, Redis to known dependencies
-- Preserve manual additions between markers
-
-**Verification**: Check `.claude/settings.local.json` or equivalent
-
-## Phase 2: Task Breakdown
-
-**Status**: Deferred to `/sp.tasks` command
-**Output**: `tasks.md`
-
-**Scope**: `/sp.plan` ends here. User will run `/sp.tasks` to generate implementation tasks.
+> **No violations detected** - Constitution Check passed all gates. No complexity justifications required.
 
 ---
 
-## Next Steps
-
-1. ✅ Complete Phase 0: Generate `research.md` (resolve all NEEDS CLARIFICATION items)
-2. ✅ Complete Phase 1: Generate `data-model.md`, `contracts/`, `quickstart.md`
-3. ⏭️ Run `/sp.tasks` to generate `tasks.md` for implementation
-4. ⏭️ Execute tasks incrementally (TDD: red → green → refactor)
-5. ⏭️ Validate against Success Criteria (SC-001 to SC-010)
-
-**Branch**: `003-auth-personalization-translation`
-**Spec**: [spec.md](./spec.md)
-**Blockers**: None - ready for Phase 0 research
+**Phase 0 (Research) and Phase 1 (Design) outputs will follow in subsequent sections per `/sp.plan` command workflow.**

@@ -1,0 +1,77 @@
+/**
+ * CitationLink Styles
+ */
+
+.citationLink {
+  position: relative;
+  display: inline-block;
+  color: #667eea;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 2px;
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.citationLink:hover {
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: #333;
+  color: white;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: normal;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.2s ease;
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #333;
+}
+
+.tooltip strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.tooltip code {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.relevance {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  font-size: 10px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}

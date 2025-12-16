@@ -9,7 +9,11 @@
       "Bash(else echo '{\"\"FEATURE_DIR\"\":\"\".\"\", \"\"AVAILABLE_DOCS\"\":[]}')",
       "Bash(fi)",
       "Bash(npm run build)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(curl:*)",
+      "Bash(python -c:*)",
+      "Bash(pwsh:*)",
+      "Bash(.specify/scripts/bash/create-new-feature.sh:*)"
     ],
     "deny": [],
     "ask": []

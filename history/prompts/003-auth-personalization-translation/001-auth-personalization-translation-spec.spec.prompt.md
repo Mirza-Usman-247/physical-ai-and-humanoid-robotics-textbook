@@ -2,14 +2,14 @@
 id: 001
 title: Auth Personalization Translation Spec
 stage: spec
-date: 2025-12-16
+date: 2025-12-17
 surface: agent
-model: claude-sonnet-4.5
+model: claude-sonnet-4-5
 feature: 003-auth-personalization-translation
 branch: 003-auth-personalization-translation
-user: developer
+user: Mirza-Usman-247
 command: /sp.specify
-labels: ["authentication", "personalization", "translation", "better-auth", "ai-skills"]
+labels: ["authentication", "personalization", "translation", "better-auth", "openrouter", "urdu"]
 links:
   spec: specs/003-auth-personalization-translation/spec.md
   ticket: null
@@ -19,89 +19,78 @@ files:
   - specs/003-auth-personalization-translation/spec.md
   - specs/003-auth-personalization-translation/checklists/requirements.md
 tests:
-  - User story prioritization validated
-  - Functional requirements testability verified
-  - Success criteria measurability confirmed
+  - Spec quality checklist validation (all items passed)
 ---
 
 ## Prompt
 
-Feature Specification: Auth, Personalization & Translation Integration
+Feature Specification: Authentication, Personalization, and Translation Integration
 
 Goal:
-Extend the existing RAG-enabled textbook platform with authentication, personalization, and translation capabilities.
+Extend the existing Physical AI & Humanoid Robotics book platform with:
+1. User authentication (Signup/Signin)
+2. Personalized content rendering
+3. Full chapter Urdu translation (Focus Mode)
+4. Integration with existing RAG chatbot
 
-Core Features:
-1. Authentication:
-   - Implement Signup and Signin using Better Auth.
-   - Store user profiles and auth metadata in Neon Serverless Postgres.
-   - Collect user background at signup:
-     - Software background (Python, ML, ROS, Linux, etc.)
-     - Hardware access (RTX GPU, Jetson, Robot, Cloud only)
+Authentication:
+- Use Better Auth (https://www.better-auth.com/)
+- Signup must collect:
+  - Software background (AI, ML, ROS, Python, Linux level)
+  - Hardware access (GPU, Jetson, Robot, Cloud only)
+- Store user profile in Neon Serverless Postgres
 
-2. Personalization:
-   - Logged-in users can personalize chapter content.
-   - A "Personalize Content" button appears at the start of each chapter.
-   - Personalization adapts explanations, depth, and examples based on user profile.
-   - Personalization uses reusable AI skills.
+Personalization:
+- Logged-in users can personalize chapter content
+- A "Personalize Chapter" button appears at the start of each chapter
+- Personalization adapts:
+  - Explanation depth
+  - Code complexity
+  - Hardware assumptions
+- Use OpenRouter free LLM models for personalization generation
 
-3. Translation:
-   - Logged-in users can translate chapter content to Urdu.
-   - A "Translate to Urdu" button appears at the start of each chapter.
-   - Translation is generated on-demand using AI skills.
-   - Translated content is not permanently overwritten.
-
-4. Data Storage:
-   - Neon Postgres stores:
-     - User profiles
-     - Background questionnaire answers
-     - Personalization preferences
-     - Translation requests (optional logs)
-
-5. Skills (Reusable):
-   - personalization-skill
-   - translation-skill
-   - user-profile-skill
-   - content-adapter-skill
+Translation:
+- Logged-in users can translate an entire chapter into Urdu
+- Translation runs in "Focus Mode":
+  - No extra commentary
+  - Faithful technical translation
+- Triggered via "Translate to Urdu" button at chapter start
+- Use OpenRouter free models
 
 Constraints:
-- Must integrate with existing FastAPI backend.
-- Must not break existing RAG chatbot.
-- Skills must be reusable across chapters and future books.
+- No personalization or translation without login
+- RAG chatbot must respect personalized/translated context
+- System must remain fast and cost-efficient
 
 Output:
-Complete feature specification including data models, API contracts, UI triggers, and skill usage.
+Detailed specification of auth flow, personalization logic, translation pipeline, and UI integration.
 
 ## Response snapshot
 
 Created comprehensive feature specification with:
-- 4 prioritized user stories (P1: Auth/Profile, P2: Personalization, P3: Translation, P3: Profile Management)
-- 43 functional requirements covering authentication (FR-001 to FR-007), profiles (FR-008 to FR-013), personalization (FR-014 to FR-021), translation (FR-022 to FR-031), data storage (FR-032 to FR-039), and integration (FR-040 to FR-043)
-- 10 measurable success criteria focusing on performance, accuracy, and user satisfaction
-- 4 key entities: User, Profile, Preference, TranslationLog with relationships
-- 8 documented assumptions about technology choices and user behavior
-- 10 out-of-scope items deferred to future phases
+- 4 prioritized user stories (P1: Auth, P2: Personalization & Chatbot Integration, P3: Translation)
+- 20 functional requirements covering authentication, personalization, translation, and RAG integration
+- 12 measurable success criteria (all technology-agnostic)
+- 7 edge cases with handling approaches
+- Key entities defined (User, UserProfile, Chapter, PersonalizedContent, TranslatedContent, ChatbotContext)
+- Comprehensive assumptions, dependencies, out-of-scope items, and risk mitigation
 
-Each user story includes:
-- Priority justification (P1 = foundation, P2 = core value, P3 = expansion)
-- Independent test description for MVP validation
-- Acceptance scenarios in Given/When/Then format
-- Edge cases for error handling
+Generated spec quality checklist and validated specification against all quality criteria:
+- All content quality checks passed (no implementation details, user-focused)
+- All requirement completeness checks passed (no clarification markers, testable requirements)
+- All feature readiness checks passed (clear acceptance criteria, measurable outcomes)
 
 ## Outcome
 
-- ✅ Impact: Complete spec ready for implementation planning phase
-- 🧪 Tests: All requirements marked testable, 5 edge cases identified
-- 📁 Files: spec.md (main specification), checklists/requirements.md (quality validation)
-- 🔁 Next prompts: /sp.plan (proceed to implementation planning), /sp.clarify (if clarifications needed)
-- 🧠 Reflection: Spec follows INVEST principles (Independent, Negotiable, Valuable, Estimable, Small, Testable). No implementation details leaked - focused purely on user needs and business value.
+- ✅ Impact: Complete specification ready for implementation planning; all user stories independently testable; clear prioritization enables incremental delivery
+- 🧪 Tests: Spec quality checklist validation passed all items
+- 📁 Files: Created spec.md (20 FRs, 4 user stories, 12 success criteria) and requirements.md checklist
+- 🔁 Next prompts: `/sp.plan` to begin implementation planning; `/sp.clarify` optional if user wants to refine requirements
+- 🧠 Reflection: Made informed decisions on session storage for transformations, skill level self-assessment approach, and one-transformation-at-a-time constraint to reduce complexity; documented all assumptions explicitly
 
 ## Evaluation notes (flywheel)
 
-- Failure modes observed: None - all requirements are technology-agnostic and testable
-- Graders run and results (PASS/FAIL):
-  - Content Quality: PASS (no implementation details, stakeholder-friendly)
-  - Requirement Completeness: PASS (no NEEDS CLARIFICATION markers, all scenarios defined)
-  - Feature Readiness: PASS (ready for planning phase)
-- Prompt variant (if applicable): Standard /sp.specify workflow
-- Next experiment (smallest change to try): Proceed to /sp.plan for architecture design and task breakdown
+- Failure modes observed: None; spec generation completed without clarification markers by making reasonable defaults for unspecified details (documented in Assumptions section)
+- Graders run and results (PASS/FAIL): Spec quality checklist - PASS (all 14 validation items passed)
+- Prompt variant (if applicable): Standard /sp.specify workflow with manual directory creation (PowerShell script unavailable)
+- Next experiment (smallest change to try): For future specs, consider creating a quick reference table mapping FRs to user stories and success criteria for easier traceability

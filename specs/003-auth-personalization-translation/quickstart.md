@@ -1,472 +1,346 @@
-# Quickstart Guide: Auth, Personalization & Translation
+# Quickstart: Authentication, Personalization, and Translation
 
-**Feature**: Auth, Personalization & Translation Integration
-**Date**: 2025-12-16
-**Audience**: Developers setting up local environment
+**Feature**: 003-auth-personalization-translation
+**Date**: 2025-12-17
+**Status**: Setup Guide
+
+## Overview
+
+This guide provides step-by-step instructions for setting up the authentication, personalization, and translation feature in the development environment.
 
 ---
 
 ## Prerequisites
 
-Before starting, ensure you have:
+### Required Software
 
-- **Python 3.11+** (check: `python --version`)
-- **Node.js 18+** and npm (check: `node --version`)
-- **Redis 7.x** running locally or remotely (check: `redis-cli ping` returns `PONG`)
-- **Neon Postgres** credentials (free tier: [neon.tech](https://neon.tech))
-- **OpenRouter API key** (free tier: [openrouter.ai](https://openrouter.ai))
-- **Git** for version control
+- **Node.js**: v18+ (for Docusaurus frontend)
+- **Python**: 3.11+ (for FastAPI backend)
+- **PostgreSQL**: N/A (using Neon Serverless Postgres cloud instance)
+- **Git**: Latest version
+
+### Required Accounts
+
+1. **Neon Serverless Postgres**: Sign up at https://neon.tech/
+2. **OpenRouter API**: Sign up at https://openrouter.ai/ (free tier)
 
 ---
 
-## Step 1: Clone Repository and Checkout Feature Branch
+## Setup Instructions
+
+### 1. Clone Repository
 
 ```bash
-# Clone repository
 git clone https://github.com/your-org/Humanoid-physical-ai-textbook.git
 cd Humanoid-physical-ai-textbook
-
-# Checkout feature branch
 git checkout 003-auth-personalization-translation
-
-# Verify you're on the correct branch
-git branch --show-current
-# Expected output: 003-auth-personalization-translation
 ```
 
----
+### 2. Backend Setup (FastAPI)
 
-## Step 2: Backend Setup (FastAPI)
-
-### 2.1 Install Python Dependencies
+#### 2.1 Install Python Dependencies
 
 ```bash
-# Navigate to backend directory
 cd backend
-
-# Create virtual environment
 python -m venv venv
-
-# Activate virtual environment
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
-
-# Install dependencies
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-
-# Expected packages:
-# - fastapi==0.104.1
-# - fastapi-users[sqlalchemy]==12.1.0
-# - psycopg[binary]==3.1.12
-# - redis==5.0.1
-# - openai==1.3.0 (for OpenRouter)
-# - alembic==1.12.1
-# - uvicorn==0.24.0
 ```
 
-### 2.2 Configure Environment Variables
+**Add to `requirements.txt`**:
+```
+# Existing dependencies
+fastapi
+uvicorn[standard]
+sqlalchemy>=2.0.0
+alembic
+psycopg2-binary
+pydantic[email]
+python-dotenv
 
-```bash
-# Copy example environment file
-cp .env.example .env
-
-# Edit .env with your credentials
-nano .env  # or use your preferred editor
+# NEW: Auth dependencies
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
 ```
 
-**`.env` File Contents**:
+#### 2.2 Configure Environment Variables
+
+Create `backend/.env`:
 
 ```bash
-# Database (Neon Postgres)
-DATABASE_URL=postgresql://user:password@ep-your-project.us-east-2.aws.neon.tech/neondb?sslmode=require
+# Database (Neon Serverless Postgres)
+NEON_DATABASE_URL=postgresql://user:password@ep-xxx.us-east-2.aws.neon.tech/dbname
 
-# Redis (Cache)
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_DB=0
-REDIS_PASSWORD=  # Leave empty if no password
+# JWT Configuration
+JWT_SECRET_KEY=<generate-with-openssl-rand-base64-32>
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=15
+JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
 
-# OpenRouter (LLM)
-OPENROUTER_API_KEY=sk-or-v1-your-api-key-here
-OPENROUTER_MODEL=deepseek/deepseek-r1-free
+# OpenRouter API
+OPENROUTER_API_KEY=<your-openrouter-api-key>
 
-# FastAPI
-SECRET_KEY=your-secret-key-generate-with-openssl-rand-hex-32
-SESSION_SECRET=another-secret-key-for-sessions
-ALLOWED_ORIGINS=http://localhost:3000
+# Existing RAG configuration
+QDRANT_URL=<your-qdrant-url>
+QDRANT_API_KEY=<your-qdrant-api-key>
+QDRANT_COLLECTION=physical-ai-textbook
 
-# Environment
-ENV=development
-DEBUG=True
+# Application
+ENVIRONMENT=development
+DEBUG=true
+LOG_LEVEL=DEBUG
 ```
 
-**Generate Secrets**:
+**Generate JWT Secret Key**:
 ```bash
-# Generate SECRET_KEY
-openssl rand -hex 32
-
-# Generate SESSION_SECRET
-openssl rand -hex 32
+openssl rand -base64 32
 ```
 
-### 2.3 Run Database Migrations
+#### 2.3 Run Database Migrations
 
 ```bash
-# Initialize Alembic (first time only)
-alembic init alembic
-
-# Generate migration
-alembic revision --autogenerate -m "Create auth and profile tables"
+# Create initial migration
+alembic revision --autogenerate -m "Add user authentication and profile tables"
 
 # Apply migration
 alembic upgrade head
-
-# Verify tables created
-psql $DATABASE_URL -c "\dt"
-# Expected tables: users, profiles, preferences, translation_logs, alembic_version
 ```
 
-### 2.4 Start Backend Server
+#### 2.4 Start Backend Server
 
 ```bash
-# Start FastAPI server
-uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
-
-# Expected output:
-# INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-# INFO:     Started reloader process [12345] using StatReload
-# INFO:     Started server process [12346]
-# INFO:     Waiting for application startup.
-# INFO:     Application startup complete.
+uvicorn src.api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 **Verify Backend**:
-```bash
-# In another terminal, test health endpoint
-curl http://localhost:8000/health
-
-# Expected response:
-# {"status":"ok","database":"connected","redis":"connected"}
-```
+- Open http://localhost:8000/docs (Swagger UI)
+- Endpoints should include: `/api/auth/signup`, `/api/auth/signin`, `/api/personalize`, `/api/translate`
 
 ---
 
-## Step 3: Frontend Setup (Docusaurus)
+### 3. Frontend Setup (Docusaurus)
 
-### 3.1 Install Node Dependencies
+#### 3.1 Install Node Dependencies
 
 ```bash
-# Navigate to frontend directory (from repo root)
-cd frontend
-
-# Install dependencies
+cd ..  # Back to project root
 npm install
-
-# Expected packages:
-# - @docusaurus/core@3.x
-# - @docusaurus/preset-classic@3.x
-# - react@18.x
-# - react-dom@18.x
 ```
 
-### 3.2 Configure Environment Variables
+**Add to `package.json` dependencies**:
+```json
+{
+  "dependencies": {
+    "@docusaurus/core": "3.x",
+    "@docusaurus/preset-classic": "3.x",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
 
-```bash
-# Copy example environment file
-cp .env.example .env.local
-
-# Edit .env.local
-nano .env.local
+    // NEW: Auth and state management
+    "better-auth": "^latest",
+    "zod": "^3.22.0",
+    "idb": "^8.0.0"
+  }
+}
 ```
 
-**`.env.local` File Contents**:
+#### 3.2 Configure Better Auth
 
-```bash
-# Backend API
-REACT_APP_API_URL=http://localhost:8000
+Create `src/lib/auth.ts`:
 
-# Environment
-REACT_APP_ENV=development
+```typescript
+import { createAuth } from 'better-auth';
+
+export const auth = createAuth({
+  baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:3000',
+  secret: process.env.BETTER_AUTH_SECRET,
+  database: {
+    type: 'postgres',
+    url: process.env.NEON_DATABASE_URL,
+  },
+  emailAndPassword: {
+    enabled: true,
+  },
+});
 ```
 
-### 3.3 Start Frontend Development Server
+Create `.env.local` (frontend):
 
 ```bash
-# Start Docusaurus dev server
+BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_SECRET=<same-as-jwt-secret-or-generate-new>
+NEON_DATABASE_URL=<same-as-backend>
+```
+
+#### 3.3 Start Docusaurus
+
+```bash
 npm start
-
-# Expected output:
-# [SUCCESS] Serving "website" at http://localhost:3000/
-# [INFO] Docusaurus website is running at: http://localhost:3000/
 ```
 
 **Verify Frontend**:
-- Open browser: http://localhost:3000
-- You should see the Docusaurus homepage
-- Check console for errors (F12 → Console tab)
+- Open http://localhost:3000
+- Should see existing Docusaurus site
 
 ---
 
-## Step 4: Verification Steps
+## Development Workflow
 
-### 4.1 Test Authentication Flow
+### 1. Create a New User (Test)
 
-1. **Signup**:
-   ```bash
-   curl -X POST http://localhost:8000/auth/signup \
-     -H "Content-Type: application/json" \
-     -d '{"email":"test@example.com","password":"SecurePass123!"}'
+**Using Swagger UI** (http://localhost:8000/docs):
 
-   # Expected: 201 Created with user object
+1. Navigate to `/api/auth/signup`
+2. Click "Try it out"
+3. Use example payload:
+   ```json
+   {
+     "email": "test@example.com",
+     "password": "TestPass123",
+     "skillLevels": {
+       "ai": 3,
+       "ml": 3,
+       "ros": 2,
+       "python": 4,
+       "linux": 3
+     },
+     "hardwareAccess": {
+       "gpu": true,
+       "jetson": false,
+       "robot": false
+     }
+   }
+   ```
+4. Click "Execute"
+5. Copy `accessToken` from response
+
+### 2. Test Personalization API
+
+**Using Swagger UI**:
+
+1. Click "Authorize" button (top right)
+2. Enter: `Bearer <your-access-token>`
+3. Navigate to `/api/personalize`
+4. Try it out with:
+   ```json
+   {
+     "chapterId": "module-1-chapter-1",
+     "chapterContent": "# Chapter 1: Introduction to Physical AI\n\nPhysical AI combines...",
+     "userProfile": {
+       "userId": "<from-signup-response>",
+       "skillLevels": {
+         "ai": 3,
+         "ml": 3,
+         "ros": 2,
+         "python": 4,
+         "linux": 3
+       },
+       "hardwareAccess": {
+         "gpu": true,
+         "jetson": false,
+         "robot": false,
+         "cloudOnly": false
+       }
+     }
+   }
    ```
 
-2. **Signin**:
-   ```bash
-   curl -X POST http://localhost:8000/auth/signin \
-     -H "Content-Type: application/json" \
-     -d '{"email":"test@example.com","password":"SecurePass123!"}'
+### 3. Test Translation API
 
-   # Expected: 200 OK with session cookie
-   ```
-
-3. **Verify in UI**:
-   - Navigate to http://localhost:3000
-   - Click "Sign Up" button
-   - Complete signup form
-   - Complete questionnaire
-   - Verify redirect to homepage
-
-### 4.2 Test Profile Management
-
-```bash
-# Submit questionnaire
-curl -X POST http://localhost:8000/user/questionnaire \
-  -H "Content-Type: application/json" \
-  -H "Cookie: auth_session=YOUR_SESSION_COOKIE" \
-  -d '{
-    "software_skills": ["Python", "ML", "ROS"],
-    "hardware_access": "GPU",
-    "learning_goal": "Build autonomous robots"
-  }'
-
-# Get profile
-curl http://localhost:8000/user/profile \
-  -H "Cookie: auth_session=YOUR_SESSION_COOKIE"
-
-# Expected: Profile with software_skills, hardware_access, learning_goal
-```
-
-### 4.3 Test Personalization
-
-```bash
-# Personalize chapter
-curl -X POST http://localhost:8000/content/personalize \
-  -H "Content-Type: application/json" \
-  -H "Cookie: auth_session=YOUR_SESSION_COOKIE" \
-  -d '{
-    "chapter_id": "module-1-chapter-1",
-    "chapter_markdown": "# Chapter 1: Kinematics\n\nForward kinematics..."
-  }'
-
-# Expected: Personalized markdown with X-Cache-Status: MISS
-# Second request: X-Cache-Status: HIT (served from Redis)
-```
-
-### 4.4 Test Translation
-
-```bash
-# Translate chapter
-curl -X POST http://localhost:8000/content/translate \
-  -H "Content-Type: application/json" \
-  -H "Cookie: auth_session=YOUR_SESSION_COOKIE" \
-  -d '{
-    "chapter_id": "module-1-chapter-1",
-    "chapter_markdown": "# Chapter 1: Forward Kinematics\n\nThe end-effector...",
-    "target_language": "urdu"
-  }'
-
-# Expected: Urdu translation with technical terms preserved
-# Check translation_quality.preservation_rate >= 0.95
-```
-
-### 4.5 Verify Redis Caching
-
-```bash
-# Connect to Redis CLI
-redis-cli
-
-# Check cached personalizations
-127.0.0.1:6379> KEYS personalized:*
-
-# Expected: personalized:{user_id}:{chapter_id}:{profile_hash}
-
-# Check TTL
-127.0.0.1:6379> TTL personalized:a1b2c3d4:module-1-chapter-1:8f3d4a21
-
-# Expected: ~1800 seconds (30 minutes)
-```
-
----
-
-## Step 5: Run Tests
-
-### 5.1 Backend Tests
-
-```bash
-# Navigate to backend directory
-cd backend
-
-# Run all tests
-pytest
-
-# Run specific test suites
-pytest tests/unit/          # Unit tests
-pytest tests/integration/   # Integration tests
-pytest tests/contract/      # Contract validation
-
-# Expected: All tests pass
-```
-
-### 5.2 Frontend Tests
-
-```bash
-# Navigate to frontend directory
-cd frontend
-
-# Run Jest tests
-npm test
-
-# Run E2E tests (requires backend running)
-npm run test:e2e
-
-# Expected: All tests pass
-```
-
----
-
-## Step 6: Build and Deploy (Optional)
-
-### 6.1 Build Frontend
-
-```bash
-cd frontend
-
-# Build for production
-npm run build
-
-# Serve built site locally
-npm run serve
-
-# Expected: Production build at build/ directory
-```
-
-### 6.2 Deploy to GitHub Pages
-
-```bash
-# Deploy to GitHub Pages (from frontend directory)
-GIT_USER=your-github-username npm run deploy
-
-# Expected: Site deployed to https://your-username.github.io/Humanoid-physical-ai-textbook/
+Same as personalization, but use `/api/translate` endpoint with:
+```json
+{
+  "chapterId": "module-1-chapter-1",
+  "chapterContent": "# Chapter 1: Introduction\n...",
+  "targetLanguage": "ur",
+  "mode": "focus"
+}
 ```
 
 ---
 
 ## Troubleshooting
 
-### Issue: Database Connection Error
+### Database Connection Issues
 
-**Error**: `psycopg.OperationalError: connection to server failed`
-
-**Solution**:
-1. Verify DATABASE_URL in .env is correct
-2. Check Neon Postgres instance is active (not paused)
-3. Test connection manually:
-   ```bash
-   psql $DATABASE_URL -c "SELECT version();"
-   ```
-
-### Issue: Redis Connection Error
-
-**Error**: `redis.exceptions.ConnectionError: Error 111 connecting to localhost:6379`
+**Error**: `could not connect to server`
 
 **Solution**:
-1. Start Redis server:
-   ```bash
-   # macOS (Homebrew)
-   brew services start redis
+1. Verify Neon database URL in `.env`
+2. Check Neon dashboard for connection string
+3. Ensure IP is whitelisted in Neon project settings
 
-   # Linux
-   sudo systemctl start redis
+### JWT Token Errors
 
-   # Windows (WSL)
-   redis-server
-   ```
-2. Verify Redis is running:
-   ```bash
-   redis-cli ping
-   # Expected: PONG
-   ```
-
-### Issue: OpenRouter API Rate Limit
-
-**Error**: `openai.error.RateLimitError: Rate limit exceeded`
+**Error**: `Invalid token` or `Token expired`
 
 **Solution**:
-1. Wait 1 minute (DeepSeek free tier: 50 requests/minute)
-2. Check API key is valid: https://openrouter.ai/keys
-3. Fallback to GPT-3.5-turbo (paid):
-   ```bash
-   # In .env
-   OPENROUTER_MODEL=openai/gpt-3.5-turbo
-   ```
+1. Verify `JWT_SECRET_KEY` matches between backend `.env` and frontend `.env.local`
+2. Check token expiry settings (15 minutes for access token)
+3. Use `/api/auth/refresh` to get new access token
 
-### Issue: Personalization Timeout
+### OpenRouter API Errors
 
-**Error**: `504 Gateway Timeout`
+**Error**: `Rate limit exceeded`
 
 **Solution**:
-1. Check chapter length (must be <8000 tokens)
-2. Split long chapters into sections
-3. Increase timeout in backend config:
-   ```python
-   # src/services/personalization_service.py
-   timeout=30  # Increase from 10 to 30 seconds
-   ```
+1. Free tier limit: 20 requests/minute
+2. Wait 60 seconds before retrying
+3. Consider implementing request queuing (see research.md section 3)
 
-### Issue: Frontend Cannot Connect to Backend
+### Better Auth Setup Issues
 
-**Error**: `Network Error: Failed to fetch`
+**Error**: `Better Auth configuration error`
 
 **Solution**:
-1. Verify backend is running: `curl http://localhost:8000/health`
-2. Check CORS configuration in backend:
-   ```python
-   # src/main.py
-   app.add_middleware(
-       CORSMiddleware,
-       allow_origins=["http://localhost:3000"],
-       allow_credentials=True
-   )
-   ```
-3. Check REACT_APP_API_URL in frontend .env.local
+1. Ensure `BETTER_AUTH_SECRET` is set in `.env.local`
+2. Verify database connection (Better Auth uses same Neon DB)
+3. Check Better Auth docs: https://www.better-auth.com/docs
+
+---
+
+## Testing Checklist
+
+Before proceeding to implementation:
+
+- [ ] Backend server starts without errors
+- [ ] Swagger UI accessible at http://localhost:8000/docs
+- [ ] Database migration successful (`alembic upgrade head`)
+- [ ] Can create user via `/api/auth/signup`
+- [ ] Can sign in via `/api/auth/signin` and receive JWT tokens
+- [ ] JWT token validates on protected endpoints
+- [ ] Personalization API returns transformed content
+- [ ] Translation API returns Urdu content
+- [ ] Frontend Docusaurus site loads at http://localhost:3000
 
 ---
 
 ## Next Steps
 
-1. **Implement AI Skills**: Develop personalization_skill.py and translation_skill.py
-2. **Add Frontend Components**: Create PersonalizeButton, TranslateButton, ChapterWrapper
-3. **Write E2E Tests**: Playwright tests for full authentication and personalization flows
-4. **Deploy to Staging**: Test in staging environment before production
+After completing this quickstart:
 
-**Need help?** Check:
-- [Feature Specification](./spec.md)
-- [Implementation Plan](./plan.md)
-- [Data Model](./data-model.md)
-- [API Contracts](./contracts/)
+1. **Read Planning Documents**:
+   - `plan.md` - Full implementation plan
+   - `research.md` - Technology research and decisions
+   - `data-model.md` - Database schema and data flows
+
+2. **Review API Contracts**:
+   - `contracts/auth.openapi.yaml` - Authentication API
+   - `contracts/personalization.openapi.yaml` - Personalization API
+   - `contracts/translation.openapi.yaml` - Translation API
+   - `contracts/profile.openapi.yaml` - Profile API
+
+3. **Run `/sp.tasks`**: Generate granular task breakdown for implementation
+
+4. **Implement Tasks**: Follow TDD approach (Red → Green → Refactor)
 
 ---
 
-**Last Updated**: 2025-12-16
+## Support
+
+- **Issues**: Create GitHub issue with `auth-personalization-translation` label
+- **Questions**: Ask in team Slack channel `#physical-ai-dev`
+- **Documentation**: See `/specs/003-auth-personalization-translation/` directory
+
+**Status**: ✅ Setup guide complete
