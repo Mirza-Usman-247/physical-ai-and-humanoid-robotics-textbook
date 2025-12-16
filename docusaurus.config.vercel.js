@@ -10,12 +10,12 @@ const config = {
   tagline: 'From Simulated Brains to Embodied Intelligence',
   favicon: 'img/favicon.ico',
 
-  // Set the production url of your site here
-  url: 'https://mirza-usman-247.github.io', // GitHub Pages URL
-  // Set the /<baseUrl>/ pathname under which your site is served
-  baseUrl: '/physical-ai-and-humanoid-robotics-textbook/', // GitHub Pages path
+  // Set the production url of your site here (Vercel deployment)
+  url: 'https://physical-ai-and-humanoid-robotics-t-psi.vercel.app',
+  // Set the /<baseUrl>/ pathname under which your site is served (Vercel deployment)
+  baseUrl: '/', // Root path for Vercel deployment
 
-  // GitHub pages deployment config (only used for GitHub Pages deployment)
+  // GitHub pages deployment config (not used for Vercel)
   organizationName: 'Mirza-Usman-247', // GitHub org/user name
   projectName: 'physical-ai-and-humanoid-robotics-textbook', // Repo name
 
