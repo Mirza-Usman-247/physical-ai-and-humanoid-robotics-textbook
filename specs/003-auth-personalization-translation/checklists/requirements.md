@@ -42,9 +42,10 @@
 - Out-of-scope items identified for phase planning
 
 **Clarifications Completed**: ✅ 2025-12-16
-- All 7 clarification questions resolved (see `clarifications.md`)
+- All 7 clarification questions resolved and **integrated into spec.md** (see "Clarifications" section)
 - Updated requirements: FR-009, FR-017, FR-025, FR-029, FR-036, FR-044-048
 - New decisions documented: Signup questions, caching strategy, translation rules, skill boundaries
+- No separate clarifications.md file - all clarifications are part of the main specification
 
 **Ready for**: `/sp.plan` (implementation planning)
 

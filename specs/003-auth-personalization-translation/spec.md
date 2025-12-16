@@ -231,3 +231,178 @@ A logged-in user accesses their profile settings, updates their background infor
 - **OS-008**: GDPR compliance tooling (data export, deletion) - Phase 1.5
 - **OS-009**: Real-time collaborative editing of personalized content - Not planned
 - **OS-010**: Integration with external learning management systems (LMS) - Phase 3
+
+## Clarifications
+
+**Date**: 2025-12-16
+**Status**: All 7 clarification questions resolved
+
+### 1. Signup Questionnaire Design
+
+**Question**: What are the exact questions asked during signup for software and hardware background?
+
+**Decision**:
+- **Software Background**: Multi-select checkboxes allowing multiple selections
+  - Options: Python, Machine Learning/Deep Learning, ROS/ROS2, Linux/Ubuntu, C++/C, JavaScript/Web Development, None (Beginner), Other (free text input)
+  - Storage: JSONB array in database (e.g., `["Python", "ML", "ROS"]`)
+  - Rationale: Users often have multiple skills; multi-select captures full profile
+
+- **Hardware Access**: Single-select radio buttons (mutually exclusive)
+  - Options: RTX GPU, Jetson Device, Physical Robot, Cloud Only
+  - Storage: ENUM type in database
+  - Rationale: Users typically have one primary hardware setup for learning
+
+- **Optional Field**: Learning goal (free text, 200 characters max)
+  - Storage: TEXT field, nullable
+  - Purpose: Contextual personalization (e.g., "I want to build autonomous drones")
+
+**Integrated into**: FR-009, FR-010, FR-011
+
+### 2. Personalization vs RAG Architecture
+
+**Question**: How does personalization differ from RAG answers (static chapter rewrite vs dynamic overlay)?
+
+**Decision**:
+- **Personalization**: Static chapter transformation (one-time rewrite)
+  - Triggered manually by "Personalize Content" button
+  - Rewrites entire chapter based on user profile
+  - Cached in Redis for 30 minutes (see Clarification #3)
+  - Output: Completely new markdown content replacing original
+
+- **RAG Chatbot**: Dynamic Q&A system (real-time responses)
+  - Triggered by user questions in chat widget
+  - Retrieves relevant sections, generates answers
+  - No chapter rewriting, only conversational responses
+  - Uses separate AI skills (rag-retriever, rag-answerer, citation-mapper)
+
+- **No Shared Logic**: Personalization and RAG are completely independent
+  - Different AI skills (personalization-skill vs rag-* skills)
+  - Different triggers, scopes, and outputs
+  - Shared infrastructure: LLM API (OpenRouter/DeepSeek) only
+
+**Integrated into**: FR-017, FR-036, Assumption A-010
+
+### 3. Caching Strategy
+
+**Question**: Is personalized content cached or regenerated every request?
+
+**Decision**:
+- **Redis Cache**: 30-minute TTL for personalized content
+  - **Key Format**: `personalized:{userId}:{chapterId}:{profileHash}`
+  - **Profile Hash**: MD5 hash of `software_skills + hardware_access + learning_goal`
+  - **Cache Hit**: Serve from Redis (<100ms response)
+  - **Cache Miss**: Generate with LLM (~10 seconds), then cache
+
+- **Cache Invalidation**:
+  - Automatic: 30-minute TTL expiration
+  - Manual: User updates profile → profile hash changes → new cache key
+  - Admin: Clear cache endpoint for content updates
+
+- **Performance Targets**:
+  - First personalization request: <10 seconds (FR-020)
+  - Cached personalization: <100ms
+  - Cache hit rate: >80% for returning users
+
+**Integrated into**: FR-044, FR-047
+
+### 4. Urdu Translation Quality Expectations
+
+**Question**: What are the technical term preservation rules for Urdu translation?
+
+**Decision**:
+- **95% English Technical Term Preservation**:
+  - Preserve: kinematics, forward kinematics, end-effector, DH parameters, Jacobian, ROS2, API, URDF, Gazebo, trajectory, pose, quaternion
+  - Translate: Common verbs, explanations, instructional text
+
+- **Hybrid Format** (Recommended):
+  - Pattern: `"Forward kinematics (آگے کی حرکیات) calculates..."`
+  - First mention: English term with Urdu translation in parentheses
+  - Subsequent mentions: English term only
+  - Rationale: Helps users learn standard terminology while understanding concepts
+
+- **100% Code Preservation**:
+  - All code snippets, variable names, function names remain unchanged
+  - Comments in code blocks remain in English (consistency with global docs)
+
+- **Quality Metrics** (FR-048):
+  - 95% technical term preservation rate
+  - 100% code snippet preservation
+  - Grammatically correct Urdu prose
+  - Measurable via automated testing and manual review
+
+**Integrated into**: FR-025, FR-026, FR-048
+
+### 5. User Toggle Controls
+
+**Question**: How do users revert to original English content after personalization or translation?
+
+**Decision**:
+- **Personalization Toggle**:
+  - Button: "Show Original Content" (appears when viewing personalized chapter)
+  - Action: Reload chapter from original markdown source
+  - State: Stored in session storage (`personalizationView: "original" | "personalized"`)
+
+- **Translation Toggle**:
+  - Button: "Show Original English" (appears when viewing translated chapter)
+  - Action: Reload chapter from original English markdown
+  - State: Stored in session storage (`translationView: "original" | "translated"`)
+
+- **Persistence Rules**:
+  - Personalization: Cached in Redis (30-min TTL) but view preference is session-only
+  - Translation: **Never persists** - refresh always returns to English (FR-029)
+  - Rationale: Translation is temporary preview; original English is canonical
+
+- **UI Behavior**:
+  - Toggle buttons appear inline at chapter top
+  - Clear visual indicator when viewing non-original content
+  - Single click switches between views without page reload
+
+**Integrated into**: FR-045, FR-046, FR-029
+
+### 6. Permission Boundaries
+
+**Question**: Are personalization and translation buttons disabled or hidden for anonymous users?
+
+**Decision**:
+- **Completely Hidden** (not disabled):
+  - Anonymous users: No "Personalize Content" or "Translate to Urdu" buttons visible
+  - Logged-in users: Buttons appear at chapter start
+  - Rationale: Disabled buttons create confusion ("Why can't I click this?"); hidden buttons are cleaner UX
+
+- **Strict API Authentication**:
+  - All personalization and translation API endpoints require valid session
+  - Unauthenticated requests: Return 401 Unauthorized
+  - No fallback to guest personalization (would dilute feature value)
+
+- **Redirect Flow**:
+  - If user somehow accesses personalization URL while logged out → redirect to login page
+  - After login → redirect back to chapter with personalization available
+
+**Integrated into**: FR-015, FR-023, FR-040
+
+### 7. Skills Interaction with RAG
+
+**Question**: How do personalization and translation skills interact with RAG without duplicating logic?
+
+**Decision**:
+- **Complete Separation**:
+  - **personalization-skill**: Independent skill for chapter rewriting
+  - **translation-skill**: Independent skill for Urdu translation
+  - **RAG skills** (rag-retriever, rag-answerer, citation-mapper): Unchanged
+
+- **Shared Infrastructure Only**:
+  - All skills use OpenRouter API with DeepSeek free model
+  - LLM configuration (API keys, model IDs) shared via environment variables
+  - No shared prompts, no shared context, no shared logic
+
+- **Different Contexts and Prompts**:
+  - Personalization: Full chapter markdown + user profile → personalized chapter
+  - Translation: Full chapter markdown → Urdu translation with term preservation
+  - RAG: User question + retrieved chunks → conversational answer with citations
+
+- **No Duplication**:
+  - Each skill has single responsibility (SRP)
+  - Skills are framework-agnostic and reusable (FR-042)
+  - Can be tested independently
+
+**Integrated into**: FR-036, FR-037, FR-038, FR-039, Assumption A-010
