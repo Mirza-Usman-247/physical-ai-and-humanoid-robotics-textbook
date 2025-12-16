@@ -1,0 +1,284 @@
+openapi: 3.1.0
+info:
+  title: Authentication API
+  version: 1.0.0
+  description: User authentication endpoints (signup, signin, logout, session management)
+  contact:
+    name: Auth Team
+    email: auth@example.com
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.your-site.com
+    description: Production server
+
+security:
+  - cookieAuth: []
+
+paths:
+  /auth/signup:
+    post:
+      summary: Create new user account
+      description: Register new user with email and password (FR-001, FR-002)
+      operationId: signup
+      tags:
+        - Authentication
+      security: []  # Public endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            examples:
+              validSignup:
+                summary: Valid signup request
+                value:
+                  email: user@example.com
+                  password: SecurePass123!
+      responses:
+        '201':
+          description: User created successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: auth_session=abc123; Path=/; HttpOnly; SameSite=Lax
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid input (weak password, invalid email)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                weakPassword:
+                  summary: Password too weak
+                  value:
+                    error: "Password must be at least 8 characters with uppercase, lowercase, and numbers"
+                invalidEmail:
+                  summary: Invalid email format
+                  value:
+                    error: "Invalid email format"
+        '409':
+          description: Email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Email already registered"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /auth/signin:
+    post:
+      summary: Sign in existing user
+      description: Authenticate user with email and password (FR-003)
+      operationId: signin
+      tags:
+        - Authentication
+      security: []  # Public endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SigninRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: auth_session=abc123; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Invalid email or password"
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /auth/logout:
+    post:
+      summary: Log out current user
+      description: Invalidate session and clear cookies (FR-007)
+      operationId: logout
+      tags:
+        - Authentication
+      security:
+        - cookieAuth: []
+      responses:
+        '204':
+          description: Logout successful
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: auth_session=; Path=/; HttpOnly; Max-Age=0
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/session:
+    get:
+      summary: Get current session status
+      description: Validate session and return user info (FR-006)
+      operationId: getSession
+      tags:
+        - Authentication
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Session valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Session invalid or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Session expired"
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: auth_session
+      description: Session-based authentication using HTTP-only cookies
+
+  schemas:
+    SignupRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address (must be unique)
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: Password (min 8 chars, must include uppercase, lowercase, and numbers)
+          example: SecurePass123!
+
+    SigninRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          example: SecurePass123!
+
+    UserResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        is_active:
+          type: boolean
+          example: true
+        is_verified:
+          type: boolean
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-12-16T10:30:00Z"
+
+    SessionResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        is_authenticated:
+          type: boolean
+          example: true
+        session_expires_at:
+          type: string
+          format: date-time
+          description: Session expiration time (1 hour from last activity)
+          example: "2025-12-16T11:30:00Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+          example: "Invalid email or password"
+
+    ValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+                description: Field location (e.g., ["body", "email"])
+              msg:
+                type: string
+                description: Error message
+              type:
+                type: string
+                description: Error type
+          example:
+            - loc: ["body", "email"]
+              msg: "value is not a valid email address"
+              type: "value_error.email"

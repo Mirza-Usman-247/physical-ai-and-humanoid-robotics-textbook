@@ -1,0 +1,265 @@
+openapi: 3.1.0
+info:
+  title: Profile Management API
+  version: 1.0.0
+  description: User profile and background questionnaire endpoints
+  contact:
+    name: Profile Team
+    email: profile@example.com
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.your-site.com
+    description: Production server
+
+security:
+  - cookieAuth: []
+
+paths:
+  /user/questionnaire:
+    post:
+      summary: Submit background questionnaire
+      description: Complete user profile with software skills, hardware access, and learning goal (FR-008, FR-009, FR-010, FR-011)
+      operationId: submitQuestionnaire
+      tags:
+        - Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionnaireRequest'
+            examples:
+              completeProfile:
+                summary: Complete questionnaire
+                value:
+                  software_skills: ["Python", "ML", "ROS"]
+                  hardware_access: "GPU"
+                  learning_goal: "Build autonomous humanoid robots"
+              minimalProfile:
+                summary: Minimal questionnaire (no learning goal)
+                value:
+                  software_skills: ["Python"]
+                  hardware_access: "CloudOnly"
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '400':
+          description: Invalid input (unknown skill or hardware type)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidSkill:
+                  summary: Invalid software skill
+                  value:
+                    error: "Unknown software skill: 'InvalidSkill'. Valid options: Python, ML, ROS, Linux, C++, JavaScript, None, Other"
+                invalidHardware:
+                  summary: Invalid hardware type
+                  value:
+                    error: "Unknown hardware type: 'Server'. Valid options: GPU, Jetson, Robot, CloudOnly"
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /user/profile:
+    get:
+      summary: Get current user profile
+      description: Retrieve user's background profile (FR-013)
+      operationId: getProfile
+      tags:
+        - Profile
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Profile not found (user skipped questionnaire)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Profile incomplete. Please complete the background questionnaire."
+
+    put:
+      summary: Update user profile
+      description: Update software skills, hardware access, or learning goal (FR-013)
+      operationId: updateProfile
+      tags:
+        - Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        '200':
+          description: Profile updated successfully (cache invalidated per FR-047)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: auth_session
+
+  schemas:
+    QuestionnaireRequest:
+      type: object
+      required:
+        - software_skills
+        - hardware_access
+      properties:
+        software_skills:
+          type: array
+          items:
+            type: string
+            enum:
+              - Python
+              - ML  # Machine Learning/Deep Learning
+              - ROS  # ROS/ROS2
+              - Linux  # Linux/Ubuntu
+              - C++  # C++/C
+              - JavaScript  # JavaScript/Web Development
+              - None  # Beginner with no background
+              - Other
+          minItems: 1
+          description: Multi-select software skills (FR-009)
+          example: ["Python", "ML", "ROS"]
+        hardware_access:
+          type: string
+          enum:
+            - GPU  # RTX GPU
+            - Jetson  # Jetson Device
+            - Robot  # Physical Robot
+            - CloudOnly  # Cloud Only
+          description: Single-select hardware access (mutually exclusive, FR-010)
+          example: "GPU"
+        learning_goal:
+          type: string
+          maxLength: 200
+          nullable: true
+          description: Optional learning goal (FR-011)
+          example: "I want to build autonomous humanoid robots"
+
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        software_skills:
+          type: array
+          items:
+            type: string
+            enum: [Python, ML, ROS, Linux, C++, JavaScript, None, Other]
+          minItems: 1
+          example: ["Python", "ML", "ROS", "Linux"]
+        hardware_access:
+          type: string
+          enum: [GPU, Jetson, Robot, CloudOnly]
+          example: "Jetson"
+        learning_goal:
+          type: string
+          maxLength: 200
+          nullable: true
+          example: "Updated goal: Deploy robots in real-world environments"
+
+    ProfileResponse:
+      type: object
+      properties:
+        profile_id:
+          type: string
+          format: uuid
+          example: "b2c3d4e5-f6a7-8901-bcde-f23456789012"
+        user_id:
+          type: string
+          format: uuid
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        software_skills:
+          type: array
+          items:
+            type: string
+          example: ["Python", "ML", "ROS"]
+        hardware_access:
+          type: string
+          enum: [GPU, Jetson, Robot, CloudOnly]
+          example: "GPU"
+        learning_goal:
+          type: string
+          nullable: true
+          example: "Build autonomous humanoid robots"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last profile update time (triggers cache invalidation)
+          example: "2025-12-16T10:45:00Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+
+    ValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            type: object
+            properties:
+              loc:
+                type: array
+                items:
+                  type: string
+              msg:
+                type: string
+              type:
+                type: string
