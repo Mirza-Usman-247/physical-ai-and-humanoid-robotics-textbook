@@ -1,21 +1,7 @@
 {
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
+  "buildCommand": "docusaurus build --config docusaurus.config.vercel.js",
+  "outputDirectory": "build",
   "github": {
     "silent": true
-  },
-  "buildCommand": "docusaurus build --config docusaurus.config.vercel.js"
+  }
 }
