@@ -1,82 +1,40 @@
-  # FastAPI and web server
-  fastapi==0.109.2
-  uvicorn[standard]==0.27.1
-  pydantic==2.6.1
-  pydantic-settings==2.1.0
+# FastAPI and web server
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+pydantic==2.6.1
+pydantic-settings==2.1.0
 
-  # Database drivers
-  psycopg2-binary==2.9.9
-  sqlalchemy==2.0.25
-  alembic==1.13.1
+# Database drivers
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.25
+alembic==1.13.1
 
-  # Vector database
-  qdrant-client==1.7.3
+# Vector database
+qdrant-client==1.7.3
 
-  # OpenRouter API (via OpenAI SDK)
-  openai==1.12.0
-  tiktoken==0.6.0
+# OpenRouter API (via OpenAI SDK)
+openai==1.12.0
+tiktoken==0.6.0
 
-  # Utilities
-  pyyaml==6.0.1
-  python-multipart==0.0.9
-  python-jose[cryptography]==3.3.0  # Ye issue kar raha hai
-  passlib[bcrypt]==1.7.4            # Ye bhi
-  python-dotenv==1.0.1
+# Utilities
+pyyaml==6.0.1
+python-multipart==0.0.9
+PyJWT==2.8.0
+passlib==1.7.4
+bcrypt==4.1.2
+python-dotenv==1.0.1
 
-  # Markdown processing
-  markdown==3.5.2
-  beautifulsoup4==4.12.3
+# Markdown processing
+markdown==3.5.2
+beautifulsoup4==4.12.3
 
-  # Testing
-  pytest==7.4.4
-  pytest-asyncio==0.23.5
-  pytest-cov==4.1.0
-  httpx==0.26.0
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.5
+pytest-cov==4.1.0
+httpx==0.26.0
 
-  # Development
-  black==24.1.1
-  flake8==7.0.0
-  mypy==1.8.0
-
-  Change to:
-
-  # FastAPI and web server
-  fastapi==0.109.2
-  uvicorn[standard]==0.27.1
-  pydantic==2.6.1
-  pydantic-settings==2.1.0
-
-  # Database drivers
-  psycopg2-binary==2.9.9
-  sqlalchemy==2.0.25
-  alembic==1.13.1
-
-  # Vector database
-  qdrant-client==1.7.3
-
-  # OpenRouter API (via OpenAI SDK)
-  openai==1.12.0
-  tiktoken==0.6.0
-
-  # Utilities
-  pyyaml==6.0.1
-  python-multipart==0.0.9
-  PyJWT==2.8.0                      # Python-jose ki jagah ye use karo
-  passlib==1.7.4                    # [bcrypt] hata do
-  bcrypt==4.1.2                     # Separately install karo
-  python-dotenv==1.0.1
-
-  # Markdown processing
-  markdown==3.5.2
-  beautifulsoup4==4.12.3
-
-  # Testing (remove for production)
-  # pytest==7.4.4
-  # pytest-asyncio==0.23.5
-  # pytest-cov==4.1.0
-  # httpx==0.26.0
-
-  # Development (remove for production)
-  # black==24.1.1
-  # flake8==7.0.0
-  # mypy==1.8.0
+# Development
+black==24.1.1
+flake8==7.0.0
+mypy==1.8.0
