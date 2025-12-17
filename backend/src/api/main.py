@@ -77,8 +77,12 @@ app.add_middleware(
         "http://localhost:8000",  # Backend dev server
         "https://*.github.io",  # GitHub Pages
         "https://*.pages.dev",  # Alternative deployment
+        "https://mirza-usman-247.github.io", # GitHub Pages production
+        "https://physical-ai-and-humanoid-robotics-textbook-7qw5vqizq.vercel.app"
     ] if settings.is_development else [
-        "https://*.github.io",  # GitHub Pages production
+        "https://mirza-usman-247.github.io",  # GitHub Pages production
+        "https://*.github.io",  # GitHub Pages wildcard
+        "https://physical-ai-and-humanoid-robotics-textbook-7qw5vqizq.vercel.app"  # Vercel deployment
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],

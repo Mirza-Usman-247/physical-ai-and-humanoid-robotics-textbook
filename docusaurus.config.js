@@ -73,6 +73,13 @@ const config = {
     },
   ],
 
+  scripts: [
+    {
+      // Inject API base URL for production deployment
+      innerHTML: `window.API_BASE_URL = 'https://backend-production-0c02.up.railway.app';`,
+    },
+  ],
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
