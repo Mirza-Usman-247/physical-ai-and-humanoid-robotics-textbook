@@ -1,0 +1,33 @@
+services:
+  # Static Site (Docusaurus Frontend)
+  - type: web
+    name: physical-ai-textbook
+    runtime: node
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./build
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.6
+
+  # Backend API Service
+  - type: web
+    name: physical-ai-textbook-api
+    runtime: python
+    buildCommand: |
+      # Set writable cargo home for Rust compilation
+      export CARGO_HOME=/opt/render/project/.cargo
+      export RUSTUP_HOME=/opt/render/project/.rustup
+      cd backend && pip install --upgrade pip && pip install -r requirements.prod.txt
+    startCommand: cd backend && uvicorn src.api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: CARGO_HOME
+        value: /opt/render/project/.cargo
+      - key: RUSTUP_HOME
+        value: /opt/render/project/.rustup
+    # Add your other environment variables here
+    # - key: DATABASE_URL
+    #   sync: false
+    # - key: OPENAI_API_KEY
+    #   sync: false

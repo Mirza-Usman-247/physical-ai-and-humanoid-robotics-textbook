@@ -4,11 +4,16 @@ FROM python:3.11.6-slim
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (including Rust for tiktoken if needed)
 RUN apt-get update && apt-get install -y \
     gcc \
     postgresql-client \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Rust (optional, for packages that need compilation)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Copy requirements first for better caching
 COPY requirements.txt .

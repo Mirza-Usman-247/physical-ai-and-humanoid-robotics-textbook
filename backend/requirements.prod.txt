@@ -15,7 +15,7 @@ qdrant-client==1.7.3
 
 # OpenRouter API (via OpenAI SDK)
 openai==1.12.0
-tiktoken==0.6.0
+tiktoken==0.8.0  # Updated for better pre-built wheel support
 
 # Utilities
 pyyaml==6.0.1
