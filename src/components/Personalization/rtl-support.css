@@ -1,0 +1,259 @@
+/**
+ * RTL (Right-to-Left) Support Styles for Urdu and Arabic
+ *
+ * Provides proper text direction and formatting for Urdu translated content
+ */
+
+/* RTL Container */
+.rtl-content {
+  direction: rtl;
+  text-align: right;
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Alvi Nastaleeq', 'Nafees Nastaleeq', Arial, sans-serif;
+  line-height: 2;
+  /* Urdu script needs more line height for proper rendering */
+}
+
+/* Preserve LTR for specific elements */
+.rtl-content .ltr-preserve,
+.rtl-content code,
+.rtl-content pre,
+.rtl-content .code-block,
+.rtl-content .technical-term {
+  direction: ltr;
+  text-align: left;
+  font-family: var(--ifm-font-family-monospace);
+  unicode-bidi: embed;
+}
+
+/* Code blocks in RTL content */
+.rtl-content pre {
+  direction: ltr;
+  text-align: left;
+  border-left: 4px solid var(--ifm-color-primary);
+  border-right: none;
+}
+
+/* Inline code in RTL content */
+.rtl-content code {
+  direction: ltr;
+  unicode-bidi: embed;
+}
+
+/* Lists in RTL */
+.rtl-content ul,
+.rtl-content ol {
+  padding-right: 2rem;
+  padding-left: 0;
+  list-style-position: inside;
+}
+
+.rtl-content li {
+  text-align: right;
+}
+
+/* Blockquotes in RTL */
+.rtl-content blockquote {
+  border-left: none;
+  border-right: 4px solid var(--ifm-color-primary);
+  padding-left: 0;
+  padding-right: 1.5rem;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Tables in RTL */
+.rtl-content table {
+  direction: rtl;
+}
+
+.rtl-content th,
+.rtl-content td {
+  text-align: right;
+}
+
+/* Links in RTL */
+.rtl-content a {
+  /* Keep link underline consistent */
+  text-decoration: none;
+  border-bottom: 1px solid var(--ifm-color-primary);
+}
+
+/* Headings in RTL */
+.rtl-content h1,
+.rtl-content h2,
+.rtl-content h3,
+.rtl-content h4,
+.rtl-content h5,
+.rtl-content h6 {
+  text-align: right;
+  font-weight: 700;
+}
+
+/* Images in RTL content */
+.rtl-content img {
+  /* Center images in RTL */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Technical Terms (English preserved) */
+.rtl-content .technical-term {
+  display: inline;
+  direction: ltr;
+  unicode-bidi: embed;
+  font-family: Arial, sans-serif;
+  font-weight: 600;
+  color: var(--ifm-color-primary-dark);
+}
+
+/* Numbers and Dates (keep LTR) */
+.rtl-content .number,
+.rtl-content .date,
+.rtl-content .version {
+  direction: ltr;
+  unicode-bidi: embed;
+}
+
+/* File Paths and Commands */
+.rtl-content .file-path,
+.rtl-content .command {
+  direction: ltr;
+  unicode-bidi: embed;
+  font-family: var(--ifm-font-family-monospace);
+  background: var(--ifm-code-background);
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+}
+
+/* Mixed Content (Urdu + English) */
+.rtl-content .mixed-content {
+  /* For sentences mixing Urdu and English */
+  direction: rtl;
+  unicode-bidi: bidi-override;
+}
+
+/* Language Badge */
+.language-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #0ea5e9;
+  background: rgba(14, 165, 233, 0.1);
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.language-badge--urdu::before {
+  content: '🇵🇰';
+  /* Pakistan flag emoji for Urdu */
+}
+
+/* RTL Toggle Button */
+.rtl-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: var(--ifm-color-emphasis-800);
+  background: var(--ifm-color-emphasis-100);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.rtl-toggle:hover {
+  background: var(--ifm-color-emphasis-200);
+  border-color: var(--ifm-color-emphasis-400);
+}
+
+.rtl-toggle__icon {
+  font-size: 1.1em;
+}
+
+/* Urdu Font Loading */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
+
+/* Dark Mode Adjustments */
+html[data-theme='dark'] .rtl-content {
+  /* Urdu text may need slightly different contrast in dark mode */
+}
+
+html[data-theme='dark'] .rtl-content code,
+html[data-theme='dark'] .rtl-content pre {
+  background: var(--ifm-code-background);
+}
+
+html[data-theme='dark'] .language-badge {
+  background: rgba(14, 165, 233, 0.2);
+  border-color: rgba(14, 165, 233, 0.4);
+}
+
+/* Print Styles for RTL */
+@media print {
+  .rtl-content {
+    font-size: 12pt;
+    line-height: 1.8;
+  }
+
+  .rtl-toggle {
+    display: none;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .rtl-content {
+    font-size: 0.95rem;
+    line-height: 1.9;
+  }
+
+  .rtl-content pre {
+    font-size: 0.85rem;
+    overflow-x: auto;
+  }
+}
+
+/* Accessibility */
+.rtl-content:lang(ur) {
+  /* HTML lang attribute for screen readers */
+  quotes: '"' '"' ''' ''';
+}
+
+/* Selection Colors for RTL */
+.rtl-content ::selection {
+  background: rgba(14, 165, 233, 0.3);
+  color: inherit;
+}
+
+html[data-theme='dark'] .rtl-content ::selection {
+  background: rgba(14, 165, 233, 0.4);
+}
+
+/* Scrollbar for RTL content */
+.rtl-content {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ifm-color-emphasis-400) var(--ifm-color-emphasis-100);
+}
+
+.rtl-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.rtl-content::-webkit-scrollbar-track {
+  background: var(--ifm-color-emphasis-100);
+}
+
+.rtl-content::-webkit-scrollbar-thumb {
+  background: var(--ifm-color-emphasis-400);
+  border-radius: 4px;
+}
+
+.rtl-content::-webkit-scrollbar-thumb:hover {
+  background: var(--ifm-color-emphasis-500);
+}

@@ -13,7 +13,15 @@
       "Bash(curl:*)",
       "Bash(python -c:*)",
       "Bash(pwsh:*)",
-      "Bash(.specify/scripts/bash/create-new-feature.sh:*)"
+      "Bash(.specify/scripts/bash/create-new-feature.sh:*)",
+      "Bash(test:*)",
+      "Bash(python -m uvicorn:*)",
+      "Bash(python -m json.tool:*)",
+      "mcp__context7__get-library-docs",
+      "WebSearch",
+      "Bash(timeout 45 npx docusaurus build)",
+      "Bash(ACCESS_TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0YWVmOTMwOS0wZmYxLTRkNGMtYjI2MS04MDMxNzk5MmRjYzAiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJleHAiOjE3NjU5ODE1NTEsInR5cGUiOiJhY2Nlc3MifQ.ZSaBxHsIXEgpoaB5_or348nVD5VmSVYJAGyqI8iBguo\")",
+      "Bash(__NEW_LINE__ curl -X POST http://localhost:8000/api/chat )"
     ],
     "deny": [],
     "ask": []

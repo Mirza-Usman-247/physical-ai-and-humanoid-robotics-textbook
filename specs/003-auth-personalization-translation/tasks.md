@@ -19,11 +19,11 @@
 
 **Purpose**: Project initialization and dependency installation
 
-- [ ] **T001** [P] Install backend dependencies: `pip install passlib[bcrypt] python-jose[cryptography] python-multipart` (backend/requirements.txt)
-- [ ] **T002** [P] Install frontend dependencies: `npm install better-auth zod idb` (package.json)
-- [ ] **T003** [P] Configure environment variables for backend (.env: JWT_SECRET_KEY, OPENROUTER_API_KEY, NEON_DATABASE_URL)
-- [ ] **T004** [P] Configure environment variables for frontend (.env.local: BETTER_AUTH_URL, BETTER_AUTH_SECRET)
-- [ ] **T005** Create Alembic migration script for users and user_profiles tables (backend/src/db/migrations/versions/YYYYMMDD_add_user_auth_tables.py)
+- [X] **T001** [P] Install backend dependencies: `pip install passlib[bcrypt] python-jose[cryptography] python-multipart` (backend/requirements.txt) - Already installed
+- [X] **T002** [P] Install frontend dependencies: `npm install better-auth zod idb` (package.json) - Completed
+- [X] **T003** [P] Configure environment variables for backend (.env: JWT_SECRET_KEY, OPENROUTER_API_KEY, NEON_DATABASE_URL) - Added to .env.example
+- [X] **T004** [P] Configure environment variables for frontend (.env.local: BETTER_AUTH_URL, BETTER_AUTH_SECRET) - Created .env.local.example
+- [X] **T005** Create Alembic migration script for users and user_profiles tables (backend/src/db/migrations/versions/YYYYMMDD_add_user_auth_tables.py) - Created
 
 **Checkpoint**: Dependencies installed, environment configured, ready for foundational infrastructure
 
@@ -37,24 +37,24 @@
 
 ### Backend Foundation
 
-- [ ] **T006** Create User model with SQLAlchemy ORM (backend/src/db/models.py: User class with id, email, password_hash, is_active, created_at, updated_at)
-- [ ] **T007** Create UserProfile model with SQLAlchemy ORM (backend/src/db/models.py: UserProfile class with user_id FK, skill levels, hardware flags)
-- [ ] **T008** Run Alembic migration to create users and user_profiles tables (`alembic upgrade head`)
-- [ ] **T009** [P] Create JWT utilities module (backend/src/utils/jwt.py: create_access_token, create_refresh_token, verify_token functions)
-- [ ] **T010** [P] Create password hashing utilities (backend/src/utils/password.py: hash_password, verify_password with bcrypt cost factor 12)
-- [ ] **T011** Create JWT validation middleware (backend/src/api/middleware/auth.py: get_current_user dependency for FastAPI)
-- [ ] **T012** [P] Create Pydantic request/response models for auth (backend/src/api/models/request.py, response.py: SignupRequest, SigninRequest, SignupResponse, SigninResponse, UserProfile)
+- [X] **T006** Create User model with SQLAlchemy ORM (backend/src/db/models.py: User class with id, email, password_hash, is_active, created_at, updated_at) - Created as AuthUser
+- [X] **T007** Create UserProfile model with SQLAlchemy ORM (backend/src/db/models.py: UserProfile class with user_id FK, skill levels, hardware flags) - Completed
+- [X] **T008** Run Alembic migration to create users and user_profiles tables (`alembic upgrade head`) - Completed, tables created successfully
+- [X] **T009** [P] Create JWT utilities module (backend/src/utils/jwt.py: create_access_token, create_refresh_token, verify_token functions) - Completed
+- [X] **T010** [P] Create password hashing utilities (backend/src/utils/password.py: hash_password, verify_password with bcrypt cost factor 12) - Completed
+- [X] **T011** Create JWT validation middleware (backend/src/api/middleware/auth.py: get_current_user dependency for FastAPI) - Completed
+- [X] **T012** [P] Create Pydantic request/response models for auth (backend/src/api/models/request.py, response.py: SignupRequest, SigninRequest, SignupResponse, SigninResponse, UserProfile) - Completed
 
 ### Frontend Foundation
 
-- [ ] **T013** [P] Configure Better Auth client (src/lib/auth.ts: createAuth with Neon Postgres config, email/password enabled)
-- [ ] **T014** [P] Create auth TypeScript types (src/types/auth.ts: User, UserProfile, AuthTokens, SignupRequest, SigninRequest interfaces)
-- [ ] **T015** [P] Create auth API client (src/api/auth.ts: signup, signin, refresh, logout functions using Better Auth)
-- [ ] **T016** Create AuthProvider React context (src/components/Auth/AuthProvider.tsx: wraps app with Better Auth context)
-- [ ] **T017** Create useAuth custom hook (src/hooks/useAuth.ts: provides user, tokens, isAuthenticated, signin, signup, logout)
-- [ ] **T018** Update Docusaurus Root theme component to inject AuthProvider (src/theme/Root.tsx)
+- [X] **T013** [P] Configure Better Auth client (src/lib/auth.ts: createAuth with Neon Postgres config, email/password enabled) - Completed
+- [X] **T014** [P] Create auth TypeScript types (src/types/auth.ts: User, UserProfile, AuthTokens, SignupRequest, SigninRequest interfaces) - Completed
+- [X] **T015** [P] Create auth API client (src/api/auth.ts: signup, signin, refresh, logout functions using Better Auth) - Completed
+- [X] **T016** Create AuthProvider React context (src/components/Auth/AuthProvider.tsx: wraps app with Better Auth context) - Completed
+- [X] **T017** Create useAuth custom hook (src/hooks/useAuth.ts: provides user, tokens, isAuthenticated, signin, signup, logout) - Completed
+- [X] **T018** Update Docusaurus Root theme component to inject AuthProvider (src/theme/Root.tsx) - Completed
 
-**Checkpoint**: Foundation ready - user story implementation can now begin in parallel
+**✅ Checkpoint PASSED**: Foundation ready - user story implementation can now begin in parallel
 
 ---
 

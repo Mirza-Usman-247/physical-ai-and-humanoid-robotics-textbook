@@ -1,0 +1,316 @@
+/**
+ * FocusAreasSelector Component Styles
+ *
+ * Multi-select component for choosing personalization focus areas
+ */
+
+.focus-areas-selector {
+  margin: 1rem 0;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+}
+
+.focus-areas-selector--disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Toggle Button */
+.focus-areas-selector__toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--ifm-color-emphasis-900);
+  background: var(--ifm-color-emphasis-100);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  text-align: left;
+}
+
+.focus-areas-selector__toggle:hover {
+  background: var(--ifm-color-emphasis-200);
+}
+
+.focus-areas-selector__toggle:focus {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: -2px;
+}
+
+.focus-areas-selector__toggle-icon {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease-in-out;
+}
+
+.focus-areas-selector__toggle-text {
+  flex: 1;
+}
+
+/* Content */
+.focus-areas-selector__content {
+  padding: 1rem;
+  background: var(--ifm-background-surface-color);
+  animation: expandDown 0.2s ease-out;
+}
+
+@keyframes expandDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+.focus-areas-selector__description {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+/* Grid of Focus Areas */
+.focus-areas-selector__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Individual Focus Area Item */
+.focus-area-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--ifm-color-emphasis-100);
+  border: 2px solid var(--ifm-color-emphasis-300);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.focus-area-item:hover {
+  background: var(--ifm-color-emphasis-200);
+  border-color: var(--ifm-color-primary-light);
+}
+
+.focus-area-item--selected {
+  background: var(--ifm-color-primary-lightest);
+  border-color: var(--ifm-color-primary);
+}
+
+.focus-area-item--selected:hover {
+  background: var(--ifm-color-primary-lighter);
+}
+
+.focus-area-item__checkbox {
+  margin-top: 0.25rem;
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--ifm-color-primary);
+}
+
+.focus-area-item__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.focus-area-item__label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-900);
+}
+
+.focus-area-item__description {
+  font-size: 0.8rem;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.4;
+}
+
+/* Custom Focus Areas */
+.focus-areas-selector__custom-list {
+  margin-bottom: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.focus-areas-selector__custom-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ifm-color-emphasis-800);
+}
+
+.focus-areas-selector__custom-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.focus-area-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--ifm-color-primary-dark);
+  background: var(--ifm-color-primary-lightest);
+  border: 1px solid var(--ifm-color-primary-light);
+  border-radius: 16px;
+  text-transform: capitalize;
+}
+
+.focus-area-tag__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  font-size: 0.9rem;
+  color: var(--ifm-color-primary-dark);
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.focus-area-tag__remove:hover {
+  background: var(--ifm-color-primary-lighter);
+  color: var(--ifm-color-danger);
+}
+
+/* Custom Input */
+.focus-areas-selector__custom-input {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.focus-areas-selector__input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-900);
+  background: var(--ifm-background-color);
+  border: 1px solid var(--ifm-color-emphasis-400);
+  border-radius: 4px;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.focus-areas-selector__input:focus {
+  outline: none;
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 2px var(--ifm-color-primary-lightest);
+}
+
+.focus-areas-selector__input::placeholder {
+  color: var(--ifm-color-emphasis-500);
+}
+
+.focus-areas-selector__add-button {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: white;
+  background: var(--ifm-color-primary);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+  white-space: nowrap;
+}
+
+.focus-areas-selector__add-button:hover {
+  background: var(--ifm-color-primary-dark);
+}
+
+.focus-areas-selector__add-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--ifm-color-emphasis-400);
+}
+
+.focus-areas-selector__add-button:focus {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+/* Dark Mode */
+html[data-theme='dark'] .focus-areas-selector {
+  border-color: var(--ifm-color-emphasis-200);
+}
+
+html[data-theme='dark'] .focus-areas-selector__toggle {
+  background: var(--ifm-color-emphasis-200);
+}
+
+html[data-theme='dark'] .focus-areas-selector__toggle:hover {
+  background: var(--ifm-color-emphasis-300);
+}
+
+html[data-theme='dark'] .focus-area-item {
+  background: var(--ifm-color-emphasis-200);
+  border-color: var(--ifm-color-emphasis-400);
+}
+
+html[data-theme='dark'] .focus-area-item:hover {
+  background: var(--ifm-color-emphasis-300);
+}
+
+html[data-theme='dark'] .focus-area-item--selected {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: var(--ifm-color-primary-light);
+}
+
+html[data-theme='dark'] .focus-area-tag {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary-lightest);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .focus-areas-selector__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .focus-areas-selector__custom-input {
+    flex-direction: column;
+  }
+
+  .focus-areas-selector__input,
+  .focus-areas-selector__add-button {
+    width: 100%;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .focus-areas-selector__content {
+    animation: none;
+  }
+
+  .focus-area-item {
+    transition: none;
+  }
+}
+
+/* Print */
+@media print {
+  .focus-areas-selector {
+    display: none;
+  }
+}

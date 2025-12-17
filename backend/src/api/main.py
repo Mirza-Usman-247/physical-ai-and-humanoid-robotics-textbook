@@ -18,7 +18,7 @@ from src.api.middleware.error_handler import (
     http_exception_handler,
     general_exception_handler
 )
-from src.api.routes import health, chat
+from src.api.routes import health, chat, auth, profile, personalize, translation
 
 # Configure logging
 logging.basicConfig(
@@ -97,6 +97,10 @@ app.add_exception_handler(Exception, general_exception_handler)
 # Include routers
 app.include_router(health.router, tags=["Health"])
 app.include_router(chat.router, tags=["Chat"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(profile.router, prefix="/api", tags=["Profile"])
+app.include_router(personalize.router, prefix="/api", tags=["Personalization"])
+app.include_router(translation.router, prefix="/api", tags=["Translation"])
 
 # Root endpoint
 @app.get("/")

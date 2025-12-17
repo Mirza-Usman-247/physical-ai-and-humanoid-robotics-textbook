@@ -1,0 +1,272 @@
+/**
+ * TranslateButton Component Styles
+ *
+ * Provides styling for the translation trigger button
+ * Uses teal/green color scheme to distinguish from personalization (purple)
+ */
+
+.translate-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: white;
+  background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+
+.translate-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(14, 165, 233, 0.3);
+  background: linear-gradient(135deg, #38bdf8 0%, #2dd4bf 100%);
+}
+
+.translate-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.translate-button:focus {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 2px;
+}
+
+/* Loading State */
+.translate-button--loading {
+  opacity: 0.7;
+  cursor: wait;
+  pointer-events: none;
+}
+
+.translate-button--loading .translate-button__icon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Disabled State */
+.translate-button--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--ifm-color-emphasis-300);
+}
+
+.translate-button--disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--ifm-color-emphasis-300);
+}
+
+/* Success State */
+.translate-button--success {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+}
+
+.translate-button--success:hover {
+  background: linear-gradient(135deg, #34d399 0%, #6ee7b7 100%);
+}
+
+/* Error State */
+.translate-button--error {
+  background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+}
+
+.translate-button--error:hover {
+  background: linear-gradient(135deg, #f87171 0%, #fca5a5 100%);
+}
+
+/* Icon Styling */
+.translate-button__icon {
+  display: inline-flex;
+  font-size: 1.1em;
+}
+
+/* Text Styling */
+.translate-button__text {
+  display: inline-flex;
+}
+
+/* Small Variant */
+.translate-button--small {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+/* Large Variant */
+.translate-button--large {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+/* Error Message */
+.translate-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--ifm-color-danger);
+  background-color: var(--ifm-color-danger-lightest);
+  border-left: 3px solid var(--ifm-color-danger);
+  border-radius: 4px;
+}
+
+.translate-error__icon {
+  flex-shrink: 0;
+}
+
+.translate-error__text {
+  flex: 1;
+}
+
+/* Success Message */
+.translate-success {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--ifm-color-success-dark);
+  background-color: var(--ifm-color-success-lightest);
+  border-left: 3px solid var(--ifm-color-success);
+  border-radius: 4px;
+}
+
+.translate-success__icon {
+  flex-shrink: 0;
+}
+
+.translate-success__text {
+  flex: 1;
+}
+
+/* Button Container */
+.translate-button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+/* Dark Mode Overrides */
+html[data-theme='dark'] .translate-button {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme='dark'] .translate-button:hover {
+  box-shadow: 0 4px 8px rgba(14, 165, 233, 0.4);
+}
+
+html[data-theme='dark'] .translate-button--disabled {
+  background: var(--ifm-color-emphasis-200);
+  opacity: 0.4;
+}
+
+html[data-theme='dark'] .translate-error {
+  color: var(--ifm-color-danger-lightest);
+  background-color: rgba(239, 68, 68, 0.15);
+  border-left-color: var(--ifm-color-danger-light);
+}
+
+html[data-theme='dark'] .translate-success {
+  color: var(--ifm-color-success-lightest);
+  background-color: rgba(16, 185, 129, 0.15);
+  border-left-color: var(--ifm-color-success-light);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .translate-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .translate-button-container {
+    width: 100%;
+  }
+
+  .translate-error,
+  .translate-success {
+    font-size: 0.8rem;
+  }
+}
+
+/* Accessibility Enhancements */
+@media (prefers-reduced-motion: reduce) {
+  .translate-button {
+    transition: none;
+  }
+
+  .translate-button--loading .translate-button__icon {
+    animation: none;
+  }
+
+  .translate-button:hover {
+    transform: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .translate-button {
+    border: 2px solid currentColor;
+  }
+
+  .translate-button:focus {
+    outline-width: 3px;
+  }
+}
+
+/* Loading Skeleton (for future use) */
+.translate-loading-skeleton {
+  display: inline-block;
+  width: 150px;
+  height: 36px;
+  background: linear-gradient(
+    90deg,
+    var(--ifm-color-emphasis-200) 25%,
+    var(--ifm-color-emphasis-300) 50%,
+    var(--ifm-color-emphasis-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* RTL Support Indicator */
+.translate-button--rtl {
+  /* Optional styling to indicate RTL content will be generated */
+  position: relative;
+}
+
+.translate-button--rtl::after {
+  content: '→';
+  margin-left: 0.25rem;
+  font-weight: bold;
+}

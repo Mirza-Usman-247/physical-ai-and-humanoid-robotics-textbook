@@ -21,7 +21,7 @@ This project is a complete educational resource for learning Physical AI and hum
 
 ### Prerequisites
 
-- Node.js 18.0 or higher
+- Node.js 20.0 or higher
 - npm or yarn package manager
 - Git
 

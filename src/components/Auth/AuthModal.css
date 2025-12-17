@@ -1,0 +1,276 @@
+/**
+ * AuthModal styles for authentication modal dialog.
+ */
+
+/* Modal Overlay */
+.auth-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+/* Modal Content */
+.auth-modal-content {
+  background: var(--ifm-background-color, #ffffff);
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode support */
+html[data-theme='dark'] .auth-modal-content {
+  background: var(--ifm-background-color, #1b1b1d);
+}
+
+/* Close Button */
+.auth-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ifm-color-gray-600);
+  transition: color 0.2s;
+  z-index: 1;
+}
+
+.auth-modal-close:hover {
+  color: var(--ifm-color-primary);
+}
+
+/* Modal Body */
+.auth-modal-body {
+  padding: 2rem;
+}
+
+/* Auth Form Styles */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.auth-form h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.75rem;
+  color: var(--ifm-heading-color);
+}
+
+.auth-form h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  color: var(--ifm-heading-color);
+}
+
+/* Form Sections */
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--ifm-background-surface-color, #f5f5f5);
+  border-radius: 6px;
+}
+
+html[data-theme='dark'] .form-section {
+  background: var(--ifm-background-surface-color, #2a2a2e);
+}
+
+.section-description {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ifm-color-gray-700);
+}
+
+/* Form Groups */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.form-group .required {
+  color: var(--ifm-color-danger);
+}
+
+.form-group input[type='email'],
+.form-group input[type='password'],
+.form-group select {
+  padding: 0.75rem;
+  border: 1px solid var(--ifm-color-gray-400, #ccc);
+  border-radius: 4px;
+  font-size: 1rem;
+  background: var(--ifm-background-color, #ffffff);
+  color: var(--ifm-font-color-base, #333);
+  transition: border-color 0.2s;
+}
+
+html[data-theme='dark'] .form-group input[type='email'],
+html[data-theme='dark'] .form-group input[type='password'],
+html[data-theme='dark'] .form-group select {
+  background: var(--ifm-background-color, #2a2a2e);
+  color: var(--ifm-font-color-base, #ffffff);
+  border-color: var(--ifm-color-gray-400, #555);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--ifm-color-primary);
+}
+
+.form-group input.error,
+.form-group select.error {
+  border-color: var(--ifm-color-danger);
+}
+
+/* Checkbox Groups */
+.form-checkbox {
+  flex-direction: row;
+  align-items: center;
+}
+
+.form-checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.form-checkbox input[type='checkbox'] {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+}
+
+/* Error Messages */
+.error-message {
+  color: var(--ifm-color-danger);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.alert-error {
+  background-color: var(--ifm-color-danger-lightest);
+  color: var(--ifm-color-danger-darkest);
+  border: 1px solid var(--ifm-color-danger);
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.form-actions button[type='submit'] {
+  width: 100%;
+}
+
+.form-switch {
+  text-align: center;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ifm-color-gray-700);
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--ifm-color-primary);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+  padding: 0;
+  font-weight: 600;
+}
+
+.link-button:hover {
+  color: var(--ifm-color-primary-dark);
+}
+
+/* Form Footer */
+.form-footer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ifm-color-gray-300);
+}
+
+.help-text {
+  font-size: 0.875rem;
+  color: var(--ifm-color-gray-600);
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .auth-modal-content {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .auth-modal-body {
+    padding: 1.5rem;
+  }
+
+  .form-section {
+    padding: 0.75rem;
+  }
+}
+
+/* Password Requirements Indicator */
+.password-requirements {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: var(--ifm-color-gray-100, #f5f5f5);
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+html[data-theme='dark'] .password-requirements {
+  background: var(--ifm-color-gray-900, #2a2a2a);
+}
+
+.password-requirements .requirement {
+  padding: 0.25rem 0;
+  transition: color 0.2s;
+}
+
+.password-requirements .requirement.met {
+  color: var(--ifm-color-success, #00a400);
+  font-weight: 500;
+}
+
+.password-requirements .requirement.unmet {
+  color: var(--ifm-color-danger, #fa383e);
+}

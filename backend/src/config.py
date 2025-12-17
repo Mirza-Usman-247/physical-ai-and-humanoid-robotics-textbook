@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     openrouter_base_url: str = Field(default="https://openrouter.ai/api/v1", description="OpenRouter base URL")
     qwen_embedding_model: str = Field(default="qwen/qwen-2-embedding", description="Qwen embedding model")
     openrouter_llm_model: str = Field(default="deepseek/deepseek-chat", description="LLM model for answer generation")
+    openrouter_llm_model_personalize: str = Field(default="google/gemini-2.0-flash-exp:free", description="Free LLM model for content personalization")
+    openrouter_llm_model_translate: str = Field(default="google/gemini-2.0-flash-exp:free", description="Free LLM model for translation")
 
     # Neon Serverless Postgres
     neon_database_url: str = Field(..., description="Neon Postgres connection string")
@@ -40,6 +42,12 @@ class Settings(BaseSettings):
     # Security
     secret_key: str = Field(..., description="Secret key for session management")
     rate_limit_per_minute: int = Field(default=20, description="Rate limit per user per minute")
+
+    # JWT Authentication (Better Auth Integration)
+    jwt_secret_key: str = Field(..., description="Secret key for JWT token signing (minimum 32 characters)")
+    jwt_algorithm: str = Field(default="HS256", description="JWT signing algorithm")
+    jwt_access_token_expire_minutes: int = Field(default=15, description="Access token expiration in minutes")
+    jwt_refresh_token_expire_days: int = Field(default=7, description="Refresh token expiration in days")
 
     # Token Limits
     max_input_tokens: int = Field(default=8000, description="Maximum input tokens per OpenRouter request")
@@ -71,6 +79,13 @@ class Settings(BaseSettings):
         if v.lower() not in allowed:
             raise ValueError(f"Environment must be one of: {', '.join(allowed)}")
         return v.lower()
+
+    @validator("jwt_secret_key")
+    def validate_jwt_secret_key(cls, v: str) -> str:
+        """Validate JWT secret key is sufficiently long."""
+        if len(v) < 32:
+            raise ValueError("JWT_SECRET_KEY must be at least 32 characters for security")
+        return v
 
     @property
     def is_production(self) -> bool:

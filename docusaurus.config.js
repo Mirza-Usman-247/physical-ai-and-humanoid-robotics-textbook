@@ -1,6 +1,7 @@
 // @ts-check
 // Note: type annotations allow type checking and IDE autocompletion
 
+const path = require('path');
 const lightCodeTheme = require('prism-react-renderer').themes.github;
 const darkCodeTheme = require('prism-react-renderer').themes.dracula;
 
@@ -70,6 +71,7 @@ const config = {
       crossorigin: 'anonymous',
     },
   ],
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({

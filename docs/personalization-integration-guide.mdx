@@ -1,0 +1,198 @@
+---
+sidebar_position: 100
+title: "Personalization Integration Guide"
+description: "How to add personalization features to your chapters"
+---
+
+import { ChapterActions } from '@site/src/components/Personalization';
+
+# Personalization Integration Guide
+
+This guide explains how to add personalization features to your chapters using the `ChapterActions` component.
+
+## What is Personalization?
+
+The personalization feature allows students to adapt chapter content based on their:
+- **Skill Levels**: AI, ML, ROS, Python, Linux (Beginner to Expert)
+- **Hardware Access**: GPU, Jetson, Robot availability
+- **Focus Areas**: Specific topics they want to emphasize
+
+## How to Add Personalization to a Chapter
+
+### Step 1: Import ChapterActions
+
+At the top of your MDX file, after the frontmatter, add the import:
+
+```mdx
+import { ChapterActions } from '@site/src/components/Personalization';
+```
+
+### Step 2: Add ChapterActions Component
+
+Place the `ChapterActions` component where you want the personalization UI to appear (typically at the top or bottom of the chapter):
+
+```mdx
+<ChapterActions
+  chapterId="module-0-chapter-1"
+  position="top"
+/>
+```
+
+#### Props
+
+- **chapterId** (required): Unique identifier for the chapter (e.g., "module-0-chapter-1")
+- **position** (optional): "top" or "bottom" - where to place the component (default: "top")
+
+### Full Example
+
+Here's a complete example of a chapter with personalization:
+
+```mdx
+---
+sidebar_position: 2
+title: "Chapter 1: Introduction to Physical AI"
+description: "Understanding the fundamentals of Physical AI"
+---
+
+import { ChapterActions } from '@site/src/components/Personalization';
+
+# Chapter 1: Introduction to Physical AI
+
+<ChapterActions
+  chapterId="module-0-chapter-1-intro"
+  position="top"
+/>
+
+## Learning Objectives
+
+By the end of this chapter, you will be able to:
+- Define Physical AI and explain how it differs from traditional AI
+- Understand the concept of embodied intelligence
+- Set up a basic simulation environment
+
+... rest of your content ...
+
+<ChapterActions
+  chapterId="module-0-chapter-1-intro"
+  position="bottom"
+/>
+```
+
+## Features Included
+
+### 1. Focus Areas Selector
+Students can select specific areas to focus on:
+- Practical Examples
+- Theoretical Depth
+- Hardware Recommendations
+- Step-by-Step Guides
+- Advanced Topics
+- Troubleshooting Tips
+- Custom focus areas
+
+### 2. Personalization Button
+Triggers AI-powered content adaptation based on the student's profile.
+
+### 3. Content Viewer
+Displays personalized content with:
+- Skill level indicators
+- Hardware tags
+- Copy and print functionality
+- Toggle between original and personalized versions
+
+### 4. Local Storage
+Personalized content is stored locally (IndexedDB) for:
+- Fast retrieval on subsequent visits
+- No database overhead
+- Session-only persistence (cleared on logout)
+
+## Example: Live Demo
+
+Below is a live example of the ChapterActions component:
+
+<ChapterActions
+  chapterId="personalization-demo"
+  position="top"
+/>
+
+## Content Adaptation Examples
+
+### Beginner Level
+- More explanations and definitions
+- Step-by-step instructions
+- Simpler code examples
+- More visual aids
+
+### Expert Level
+- Concise explanations
+- Advanced techniques
+- Performance optimizations
+- Research references
+
+### Hardware-Specific
+- GPU: CUDA examples, GPU-accelerated algorithms
+- Jetson: Edge computing, power optimization
+- Robot: Real hardware considerations, sensor integration
+- Cloud-only: Simulation-focused, cloud deployment
+
+## API Reference
+
+### ChapterActions Props
+
+```typescript
+interface ChapterActionsProps {
+  /** Unique identifier for the chapter */
+  chapterId: string;
+  /** Placement of actions (top or bottom) */
+  position?: 'top' | 'bottom';
+}
+```
+
+## Implementation Notes
+
+1. **Chapter ID Convention**: Use a consistent naming convention:
+   - Format: `module-{X}-chapter-{Y}` or `module-{X}-chapter-{Y}-{slug}`
+   - Example: `module-0-chapter-1`, `module-1-chapter-2-publisher-subscriber`
+
+2. **Placement Strategy**:
+   - Use `position="top"` for chapters where students should personalize before reading
+   - Use `position="bottom"` for summaries or reviews
+   - You can include both (different chapterIds) for pre/post personalization
+
+3. **Authentication Required**:
+   - The component automatically hides for non-authenticated users
+   - Students must sign in to use personalization features
+
+4. **Performance**:
+   - Content extraction happens on component mount
+   - Personalization API call uses free OpenRouter model (Google Gemini 2.0 Flash)
+   - IndexedDB storage is fast and doesn't block the UI
+
+## Troubleshooting
+
+### Component Not Showing
+- Verify the user is authenticated (signed in)
+- Check browser console for errors
+- Ensure the import path is correct
+
+### Personalization Not Working
+- Check network tab for API errors
+- Verify backend is running
+- Check authentication token is valid
+
+### Content Not Persisting
+- Verify browser allows IndexedDB
+- Check browser storage isn't full
+- Note: Content is cleared on logout (by design)
+
+## Next Steps
+
+To integrate personalization into your chapters:
+
+1. Add the import statement to your MDX files
+2. Choose appropriate chapter IDs
+3. Place ChapterActions at desired positions
+4. Test with different skill levels and hardware configurations
+5. Review personalized output for quality
+
+For questions or issues, please refer to the main documentation or contact support.

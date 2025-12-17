@@ -142,3 +142,143 @@ class ConversationHistoryRequest(BaseModel):
                 "limit": 20
             }
         }
+
+
+# Authentication and Personalization Request Models (Better Auth Integration)
+from pydantic import EmailStr
+import re
+
+
+class SignupRequest(BaseModel):
+    """
+    Request model for user signup.
+
+    Validates:
+    - Email format (EmailStr)
+    - Password complexity (min 8 chars, 1 uppercase, 1 lowercase, 1 number)
+    - Skill levels (1-5 range)
+    - Hardware access flags (optional, default False)
+    """
+    email: EmailStr = Field(..., description="User email address")
+    password: str = Field(..., min_length=8, max_length=128, description="User password (min 8 chars)")
+
+    # Skill levels (mandatory, 1-5 range)
+    ai_level: int = Field(..., ge=1, le=5, description="AI knowledge level (1=beginner, 5=expert)")
+    ml_level: int = Field(..., ge=1, le=5, description="Machine Learning knowledge level")
+    ros_level: int = Field(..., ge=1, le=5, description="ROS expertise level")
+    python_level: int = Field(..., ge=1, le=5, description="Python programming proficiency")
+    linux_level: int = Field(..., ge=1, le=5, description="Linux system administration skill")
+
+    # Hardware access (optional, default False)
+    has_gpu: bool = Field(default=False, description="Whether user has GPU access")
+    has_jetson: bool = Field(default=False, description="Whether user has Nvidia Jetson device")
+    has_robot: bool = Field(default=False, description="Whether user has physical robot hardware")
+
+    @validator('password')
+    def validate_password_complexity(cls, v: str) -> str:
+        """
+        Validate password meets complexity requirements:
+        - At least 1 uppercase letter
+        - At least 1 lowercase letter
+        - At least 1 number
+        - Minimum 8 characters (enforced by Field min_length)
+        """
+        if not re.search(r'[A-Z]', v):
+            raise ValueError('Password must contain at least one uppercase letter')
+        if not re.search(r'[a-z]', v):
+            raise ValueError('Password must contain at least one lowercase letter')
+        if not re.search(r'[0-9]', v):
+            raise ValueError('Password must contain at least one number')
+        return v
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "email": "user@example.com",
+                "password": "SecurePass123",
+                "ai_level": 3,
+                "ml_level": 2,
+                "ros_level": 1,
+                "python_level": 4,
+                "linux_level": 3,
+                "has_gpu": True,
+                "has_jetson": False,
+                "has_robot": False
+            }
+        }
+
+
+class SigninRequest(BaseModel):
+    """
+    Request model for user signin/login.
+
+    Validates:
+    - Email format
+    - Password provided (no complexity check on signin, only on signup)
+    """
+    email: EmailStr = Field(..., description="User email address")
+    password: str = Field(..., min_length=1, description="User password")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "email": "user@example.com",
+                "password": "SecurePass123"
+            }
+        }
+
+
+class RefreshTokenRequest(BaseModel):
+    """
+    Request model for refreshing access token using refresh token.
+    """
+    refresh_token: str = Field(..., description="Valid refresh token")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+        }
+
+
+class PersonalizeRequest(BaseModel):
+    """
+    Request model for chapter personalization.
+
+    User profile will be extracted from JWT token (authenticated endpoint).
+    """
+    chapter_id: str = Field(..., description="Chapter identifier (e.g., 'module-0-foundations/chapter-2')")
+    chapter_content: str = Field(..., min_length=10, max_length=50000, description="Original chapter markdown content")
+    focus_areas: Optional[list[str]] = Field(default=None, description="Optional list of topics to emphasize (e.g., ['neural networks', 'GPU optimization'])")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "chapter_id": "module-0-foundations/chapter-2",
+                "chapter_content": "# Introduction to ROS 2\n\nROS 2 is the next generation...",
+                "focus_areas": ["ROS navigation", "sensor fusion"]
+            }
+        }
+
+
+class TranslateRequest(BaseModel):
+    """
+    Request model for chapter translation to Urdu.
+
+    Includes Focus Mode toggle for technical faithfulness.
+    """
+    chapter_id: str = Field(..., description="Chapter identifier")
+    chapter_content: str = Field(..., min_length=10, max_length=50000, description="Original chapter markdown content")
+    focus_mode: bool = Field(default=True, description="Enable Focus Mode (technical faithfulness, no extra commentary)")
+    focus_areas: Optional[list[str]] = Field(default=None, description="Optional list of topics to emphasize in translation (e.g., ['navigation', 'sensors'])")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "chapter_id": "module-0-foundations/chapter-2",
+                "chapter_content": "# Introduction to ROS 2\n\nROS 2 is the next generation...",
+                "focus_mode": True,
+                "focus_areas": ["ROS navigation", "sensor integration"]
+            }
+        }

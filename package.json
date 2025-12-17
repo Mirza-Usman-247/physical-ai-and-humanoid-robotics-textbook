@@ -4,7 +4,7 @@
   "description": "Physical AI & Humanoid Robotics – From Simulated Brains to Embodied Intelligence",
   "private": true,
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "docusaurus": "docusaurus",
@@ -30,21 +30,24 @@
     "@docusaurus/preset-classic": "^3.0.0",
     "@docusaurus/theme-classic": "^3.0.0",
     "@mdx-js/react": "^3.0.0",
+    "better-auth": "^1.4.7",
     "clsx": "^2.0.0",
     "flexsearch": "^0.7.31",
     "glob": "^7.2.3",
+    "idb": "^8.0.3",
     "prism-react-renderer": "^2.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rehype-katex": "^7.0.1",
-    "remark-math": "^6.0.0"
+    "remark-math": "^6.0.0",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.0.0",
     "@docusaurus/types": "^3.0.0",
     "@lhci/cli": "^0.12.0",
     "@tsconfig/docusaurus": "^2.0.2",
-    "@types/node": "^18.0.0",
+    "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
@@ -56,6 +59,7 @@
     "json-schema-to-typescript": "^13.1.0",
     "prettier": "^3.0.0",
     "sharp": "^0.32.0",
+    "swc-loader": "^0.2.6",
     "typescript": "^5.0.0"
   },
   "browserslist": {

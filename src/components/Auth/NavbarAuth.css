@@ -1,0 +1,121 @@
+/**
+ * NavbarAuth styles for authentication buttons in navbar.
+ */
+
+.navbar-auth {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: 1rem;
+}
+
+/* Loading State */
+.navbar-auth-loading {
+  font-size: 0.9rem;
+  color: var(--ifm-color-gray-600);
+}
+
+/* Authenticated User Display */
+.navbar-auth-user {
+  font-size: 0.9rem;
+  color: var(--ifm-navbar-link-color);
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  background: var(--ifm-color-emphasis-100);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Auth Buttons */
+.navbar-auth-button {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  white-space: nowrap;
+}
+
+/* Sign In Button */
+.navbar-auth-button--signin {
+  background: transparent;
+  color: var(--ifm-navbar-link-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.navbar-auth-button--signin:hover {
+  background: var(--ifm-color-emphasis-100);
+  border-color: var(--ifm-color-primary);
+}
+
+/* Sign Up Button */
+.navbar-auth-button--signup {
+  background: var(--ifm-color-primary);
+  color: white;
+}
+
+.navbar-auth-button--signup:hover {
+  background: var(--ifm-color-primary-dark);
+}
+
+/* Sign Out Button */
+.navbar-auth-button--signout {
+  background: transparent;
+  color: var(--ifm-navbar-link-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.navbar-auth-button--signout:hover {
+  background: var(--ifm-color-danger-lightest);
+  border-color: var(--ifm-color-danger);
+  color: var(--ifm-color-danger);
+}
+
+/* Dark Mode Support */
+html[data-theme='dark'] .navbar-auth-user {
+  background: var(--ifm-color-emphasis-200);
+}
+
+html[data-theme='dark'] .navbar-auth-button--signin:hover {
+  background: var(--ifm-color-emphasis-200);
+}
+
+/* Responsive */
+@media (max-width: 996px) {
+  .navbar-auth {
+    margin-left: 0;
+    margin-top: 0.5rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .navbar-auth-user {
+    max-width: 150px;
+  }
+
+  .navbar-auth-button {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+@media (max-width: 576px) {
+  .navbar-auth {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .navbar-auth-button {
+    width: 100%;
+  }
+
+  .navbar-auth-user {
+    max-width: 100%;
+    width: 100%;
+    text-align: center;
+  }
+}
