@@ -12,9 +12,9 @@ const config = {
   favicon: 'img/logo.svg',
 
   // Set the production url of your site here
-  url: 'https://physical-ai-and-humanoid-robotics-t-psi.vercel.app', // Vercel URL
+  url: 'https://mirza-usman-247.github.io', // GitHub Pages URL
   // Set the /<baseUrl>/ pathname under which your site is served
-  baseUrl: '/', // Root path for Vercel deployment
+  baseUrl: '/physical-ai-and-humanoid-robotics-textbook/', // GitHub Pages subpath
 
   // GitHub pages deployment config (only used for GitHub Pages deployment)
   organizationName: 'Mirza-Usman-247', // GitHub org/user name
