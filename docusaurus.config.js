@@ -44,9 +44,9 @@ const config = {
           sidebarPath: require.resolve('./sidebars.js'),
           // Edit URL for GitHub
           editUrl: 'https://github.com/Mirza-Usman-247/physical-ai-and-humanoid-robotics-textbook/tree/main/',
-          // Show last update time and author
-          showLastUpdateAuthor: true,
-          showLastUpdateTime: true,
+          // Disabled git-dependent features for Docker build compatibility
+          showLastUpdateAuthor: false,
+          showLastUpdateTime: false,
         },
         blog: false, // Disable blog for textbook
         theme: {
