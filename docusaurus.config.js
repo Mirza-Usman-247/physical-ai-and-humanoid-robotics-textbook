@@ -21,6 +21,7 @@ const config = {
   projectName: 'physical-ai-and-humanoid-robotics-textbook', // Repo name
 
   onBrokenLinks: 'warn', // Changed to 'warn' for Phase 0 - will change to 'throw' after all modules created
+  trailingSlash: false, // Prevent GitHub Pages trailing slash redirect issues
 
   // Markdown configuration (migrated from deprecated onBrokenMarkdownLinks)
   markdown: {
